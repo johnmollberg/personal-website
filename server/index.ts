@@ -1,5 +1,5 @@
 import { createServer } from 'vite'
-import { renderPage } from 'vite-plugin-ssr/server'
+import { renderPage } from 'vike/server'
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda'
 import { createServer as createHttpServer } from 'http'
 import { parse } from 'url'

@@ -1,5 +1,5 @@
 import { renderToString } from 'react-dom/server'
-import { escapeInject, dangerouslySkipEscape } from 'vite-plugin-ssr/server'
+import { escapeInject, dangerouslySkipEscape } from 'vike/server'
 import { PageShell } from '../PageShell'
 import type { PageContext } from '../types'
 
