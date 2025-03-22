@@ -4,10 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && tsc -p tsconfig.server.json",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "cross-env IS_LOCAL=true NODE_ENV=production node --loader ts-node/esm ./server/index.ts",
+    "dev": "cross-env IS_LOCAL=true NODE_ENV=development vite",
+    "serve": "cross-env NODE_ENV=production node ./dist/server/index.js",
+    "deploy": "sam build && sam deploy",
+    "deploy:guided": "sam build && sam deploy --guided",
+    "deploy:static": "node scripts/deploy-static.js",
+    "deploy:all": "yarn build && yarn deploy && yarn deploy:static"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -15,16 +20,24 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/aws-lambda": "^8.10.147",
+    "@types/node": "^22.13.11",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react-swc": "^3.8.0",
+    "aws-cdk-lib": "^2.116.0",
+    "aws-lambda": "^1.0.7",
+    "constructs": "^10.3.0",
+    "cross-env": "^7.0.3",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "ts-node": "^10.9.2",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vite-plugin-ssr": "^0.4.142"
   },
   "packageManager": "yarn@4.7.0"
 }

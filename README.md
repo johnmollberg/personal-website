@@ -50,11 +50,32 @@ website-project/
    ```
 
 ## Deployment
-To deploy infrastructure and frontend:
+
+### Local Development
 ```bash
-cd infra && cdk deploy
-npm run build && npm run preview
+yarn dev        # Run the development server with SSR
+yarn build      # Build the application for production
+yarn preview    # Preview the production build locally
 ```
+
+### AWS Deployment with SAM
+This project is set up to deploy to AWS using SAM (Serverless Application Model):
+
+1. **Initial deployment:**
+   ```bash
+   yarn deploy:guided  # Interactive guided deployment 
+   ```
+
+2. **Subsequent deployments:**
+   ```bash
+   yarn deploy:all     # Build, deploy Lambda function, and upload static assets
+   ```
+
+The deployment creates:
+- Lambda function for server-side rendering
+- API Gateway endpoint
+- S3 bucket for static assets
+- CloudFront distribution for caching and CDN
 
 ## Future Enhancements
 - Integrate Google Analytics via a tagging server
