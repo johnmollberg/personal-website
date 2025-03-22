@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build && tsc -p tsconfig.server.json",
+    "build": "tsc -b && vike build && tsc -p tsconfig.server.json",
     "lint": "eslint .",
     "preview": "cross-env IS_LOCAL=true NODE_ENV=production node --loader ts-node/esm ./server/index.ts",
-    "dev": "cross-env IS_LOCAL=true NODE_ENV=development vite",
+    "dev": "cross-env IS_LOCAL=true NODE_ENV=development vike dev",
     "serve": "cross-env NODE_ENV=production node ./dist/server/index.js",
     "deploy": "sam build && sam deploy",
     "deploy:guided": "sam build && sam deploy --guided",
