@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Personal website with server-side rendering using Vite and React
+Description: Personal website with server-side rendering using Vike and React deployed with Lambda@Edge
 
 Globals:
   Function:
@@ -11,6 +11,7 @@ Globals:
         NODE_ENV: production
 
 Resources:
+  # Lambda@Edge function for SSR
   PersonalWebsiteFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -19,16 +20,43 @@ Resources:
       Runtime: nodejs20.x
       Architectures:
         - x86_64
-      Events:
-        PersonalWebsite:
-          Type: HttpApi
-          Properties:
-            Path: /{proxy+}
-            Method: any
+      AutoPublishAlias: live
       Environment:
         Variables:
           NODE_ENV: production
+      # Lambda@Edge functions must be deployed to us-east-1
+      # and referenced from CloudFront by version/alias
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowOrigins:
+            - '*'
+          AllowMethods:
+            - GET
+            - POST
+            - HEAD
+            - OPTIONS
+          AllowHeaders:
+            - '*'
+      Role: !GetAtt PersonalWebsiteFunctionRole.Arn
 
+  # IAM Role for the Lambda@Edge function
+  PersonalWebsiteFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+
+  # S3 bucket for static assets
   StaticAssets:
     Type: AWS::S3::Bucket
     Properties:
@@ -37,6 +65,7 @@ Resources:
         IndexDocument: index.html
         ErrorDocument: index.html
 
+  # Bucket policy to allow public reading of static assets
   StaticAssetsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -48,17 +77,12 @@ Resources:
             Resource: !Sub "${StaticAssets.Arn}/*"
             Principal: "*"
 
+  # CloudFront distribution that uses Lambda@Edge
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Origins:
-          - Id: ApiGateway
-            DomainName: !Sub "${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
-            CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
-              OriginProtocolPolicy: https-only
           - Id: S3Static
             DomainName: !GetAtt StaticAssets.DomainName
             CustomOriginConfig:
@@ -67,18 +91,19 @@ Resources:
               OriginProtocolPolicy: http-only
         Enabled: true
         DefaultCacheBehavior:
-          TargetOriginId: ApiGateway
+          TargetOriginId: S3Static
           ViewerProtocolPolicy: redirect-to-https
-          AllowedMethods: [DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT]
+          AllowedMethods: [GET, HEAD, OPTIONS]
           CachedMethods: [GET, HEAD]
           ForwardedValues:
             QueryString: true
             Cookies:
-              Forward: all
+              Forward: none
             Headers:
-              - Accept
-              - Authorization
               - Host
+          LambdaFunctionAssociations:
+            - EventType: origin-request
+              LambdaFunctionARN: !Ref PersonalWebsiteFunctionVersion
         CacheBehaviors:
           - PathPattern: "/assets/*"
             TargetOriginId: S3Static
@@ -89,19 +114,37 @@ Resources:
               QueryString: false
               Cookies:
                 Forward: none
+            Compress: true
+            DefaultTTL: 31536000  # 1 year
+            MinTTL: 31536000
+            MaxTTL: 31536000
         DefaultRootObject: ""
         PriceClass: PriceClass_100
         HttpVersion: http2
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  # Get a specific version of the Lambda function to use in CloudFront
+  PersonalWebsiteFunctionVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref PersonalWebsiteFunction
+      Description: Version for Lambda@Edge
 
 Outputs:
-  PersonalWebsiteApi:
-    Description: "API Gateway endpoint URL for Prod stage for Personal Website function"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
   PersonalWebsiteFunction:
     Description: "Personal Website Lambda Function ARN"
     Value: !GetAtt PersonalWebsiteFunction.Arn
+  PersonalWebsiteFunctionVersion:
+    Description: "Personal Website Lambda Function Version ARN for Lambda@Edge"
+    Value: !Ref PersonalWebsiteFunctionVersion
   CloudFrontDistributionDomainName:
     Description: "CloudFront Distribution Domain Name"
     Value: !GetAtt CloudFrontDistribution.DomainName

@@ -8,11 +8,11 @@ This project is an open-source personal website built with modern tools and fram
 - **Google Analytics (future enhancement)**
 
 ## Tech Stack
-- **Frontend:** Vite (React)
-- **Backend/Infrastructure:** AWS CDK (TypeScript)
+- **Frontend:** Vite (React) with Vike for SSR
+- **Backend/Infrastructure:** AWS SAM (TypeScript)
 - **Content Management:** Statsig
 - **Analytics:** Google Analytics (via tagging server in future update)
-- **Hosting:** AWS (likely using S3 + CloudFront + Lambda for SSR)
+- **Hosting:** AWS (S3 + CloudFront + Lambda@Edge for SSR)
 
 ## Project Structure
 ```
@@ -72,12 +72,35 @@ This project is set up to deploy to AWS using SAM (Serverless Application Model)
    ```
 
 The deployment creates:
-- Lambda function for server-side rendering
-- API Gateway endpoint
+- Lambda@Edge function for server-side rendering directly at the edge
 - S3 bucket for static assets
 - CloudFront distribution for caching and CDN
+
+## Lambda@Edge Architecture
+
+This project uses Lambda@Edge for server-side rendering, which offers several benefits:
+
+### Benefits of Lambda@Edge for SSR
+- **Lower Latency**: Content is rendered closer to users, reducing round-trip time
+- **Simplified Architecture**: Eliminates API Gateway, reducing infrastructure complexity
+- **Cost Efficiency**: Removes API Gateway charges and potentially reduces overall costs
+- **Global Distribution**: Automatic code distribution to edge locations worldwide
+- **Improved Cache Utilization**: Better caching of dynamic content at the edge
+
+### Implementation Details
+The implementation uses:
+- **Origin Request** trigger for the Lambda@Edge function
+- **Vike/SSR** for React server-side rendering
+- **S3 Origin** for static assets (js, css, images)
+- **CloudFront** for caching both static assets and dynamic content
+
+### Important Notes
+- Lambda@Edge functions must be deployed to the `us-east-1` region
+- Size limits apply: Lambda@Edge functions are limited to 10MB (compressed) 
+- Execution environment limitations: Lambda@Edge functions have more restrictive runtime compared to regular Lambda functions
 
 ## Future Enhancements
 - Integrate Google Analytics via a tagging server
 - Expand Statsig integration for dynamic content control
+- Add custom domain with SSL certificate
 

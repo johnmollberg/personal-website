@@ -1,53 +1,67 @@
 #!/usr/bin/env node
 
 import { execSync } from 'child_process';
-import fs from 'fs';
 import path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 
-// Deploy static assets to S3 using CDK
+// Deploy static assets to S3 directly
 const deployStaticAssets = async () => {
   try {
-    console.log('Using AWS CDK to deploy static assets');
+    console.log('Deploying static assets to S3');
     
-    // Import CDK stack (assuming it exists)
-    // You'd need to import your actual CDK stack module here
-    const { StaticAssetsStack } = await import('../infra/static-assets-stack.js');
+    // Get the stack outputs to find our S3 bucket
+    const cloudformationOutput = execSync('aws cloudformation describe-stacks --stack-name personal-website --query "Stacks[0].Outputs" --output json', { encoding: 'utf-8' });
+    const outputs = JSON.parse(cloudformationOutput);
     
-    // Create CDK app
-    const app = new cdk.App();
+    // Find S3 bucket name from stack outputs
+    const s3BucketOutput = outputs.find(output => output.OutputKey === 'StaticAssetsS3BucketName');
     
-    // Instantiate the stack
-    const stack = new StaticAssetsStack(app, 'personal-website-static');
-    
-    // Synthesize and deploy the stack
-    console.log('Deploying CDK stack for static assets...');
-    const result = execSync('cd infra && npx cdk deploy', { stdio: 'inherit' });
-    
-    // Get the bucket name from stack outputs
-    const stackOutputs = stack.exportValue('StaticAssetsS3BucketName');
-    const s3BucketName = stackOutputs.toString();
-    
-    if (!s3BucketName) {
-      console.error('Could not find S3 bucket name in CDK stack outputs');
+    if (!s3BucketOutput) {
+      console.error('Could not find S3 bucket name in CloudFormation stack outputs');
       process.exit(1);
     }
     
-    console.log(`Static assets will be deployed to S3 bucket: ${s3BucketName}`);
+    const s3BucketName = s3BucketOutput.OutputValue;
+    console.log(`Deploying static assets to S3 bucket: ${s3BucketName}`);
     
-    // Use S3 Deployment construct to deploy assets
-    new s3deploy.BucketDeployment(stack, 'DeployStaticAssets', {
-      sources: [s3deploy.Source.asset('./dist/client/assets')],
-      destinationBucket: s3.Bucket.fromBucketName(stack, 'StaticAssetsBucket', s3BucketName),
-      cacheControl: [s3deploy.CacheControl.setMaxAge(cdk.Duration.days(365))],
-    });
+    // Deploy static assets to S3 using AWS CLI
+    console.log('Copying assets to S3 bucket...');
+    execSync(`aws s3 sync ./dist/client/assets s3://${s3BucketName}/assets --cache-control "max-age=31536000,public" --acl public-read`, 
+      { stdio: 'inherit' });
+    
+    // Invalidate CloudFront cache for assets if needed
+    const cloudfrontOutput = outputs.find(output => output.OutputKey === 'CloudFrontDistributionDomainName');
+    if (cloudfrontOutput) {
+      const distributionDomain = cloudfrontOutput.OutputValue;
+      // Extract distribution ID (we need it for invalidation)
+      const distributionId = await getDistributionIdFromDomain(distributionDomain);
+      
+      if (distributionId) {
+        console.log(`Creating CloudFront invalidation for distribution: ${distributionId}`);
+        execSync(`aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/assets/*"`, 
+          { stdio: 'inherit' });
+      }
+    }
     
     console.log('Static assets deployed successfully');
   } catch (error) {
     console.error('Error deploying static assets:', error.message);
     process.exit(1);
+  }
+};
+
+// Helper to get CloudFront distribution ID from domain name
+const getDistributionIdFromDomain = async (domain) => {
+  try {
+    const result = execSync(`aws cloudfront list-distributions --query "DistributionList.Items[?DomainName=='${domain}'].Id" --output text`, 
+      { encoding: 'utf-8' });
+    return result.trim();
+  } catch (error) {
+    console.error('Could not get CloudFront distribution ID:', error.message);
+    return null;
   }
 };
 

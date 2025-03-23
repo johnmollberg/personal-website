@@ -9,10 +9,11 @@
     "preview": "cross-env IS_LOCAL=true NODE_ENV=production node --loader ts-node/esm ./server/index.ts",
     "dev": "cross-env IS_LOCAL=true NODE_ENV=development vike dev",
     "serve": "cross-env NODE_ENV=production node ./dist/server/index.js",
-    "deploy": "sam build && sam deploy",
-    "deploy:guided": "sam build && sam deploy --guided",
+    "deploy": "sam build --region us-east-1 && sam deploy --region us-east-1",
+    "deploy:guided": "sam build --region us-east-1 && sam deploy --guided --region us-east-1",
     "deploy:static": "node scripts/deploy-static.js",
-    "deploy:all": "yarn build && yarn deploy && yarn deploy:static"
+    "deploy:all": "yarn build && yarn deploy && yarn deploy:static",
+    "invalidate-cache": "aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query \"DistributionList.Items[?Aliases.Items[0]=='YOUR_DOMAIN_HERE'].Id\" --output text) --paths \"/*\""
   },
   "dependencies": {
     "react": "^19.0.0",

@@ -1,53 +1,97 @@
-import { createServer } from 'vite'
 import { renderPage } from 'vike/server'
-import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda'
+import type { CloudFrontRequestEvent, CloudFrontRequestResult, Context } from 'aws-lambda'
 import { createServer as createHttpServer } from 'http'
 import { parse } from 'url'
 // Import type definitions from Vike
-import 'vike/types'
+import type { PageContextInit } from '../src/pages/vike.d.ts'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isDev = process.env.NODE_ENV === 'development'
 const isLocal = process.env.IS_LOCAL === 'true'
 const root = process.cwd()
 
-// Handler for AWS Lambda
-export const handler = async (event: APIGatewayProxyEvent, _context: Context): Promise<APIGatewayProxyResult> => {
-  const { path, queryStringParameters } = event
+// Handler for AWS Lambda@Edge (origin-request function for CloudFront)
+export const handler = async (event: CloudFrontRequestEvent, _context: Context): Promise<CloudFrontRequestResult> => {
+  const request = event.Records[0].cf.request
+  const { uri, querystring } = request
   
-  // Create URL-like query string
-  const queryString = queryStringParameters ? 
-    '?' + Object.entries(queryStringParameters)
-      .map(([key, value]) => `${key}=${value}`)
-      .join('&') : ''
-  
-  const pageContextInit = {
-    urlOriginal: path + queryString
+  // Skip processing for static assets - let CloudFront/S3 handle them
+  if (uri.startsWith('/assets/')) {
+    return request
   }
   
-  const pageContext = await renderPage(pageContextInit)
-  const { httpResponse } = pageContext
-  
-  if (!httpResponse) {
-    return {
-      statusCode: 404,
-      body: 'Not Found',
-      headers: { 'Content-Type': 'text/plain' }
+  // Create full URL for rendering
+  const queryString = querystring ? `?${querystring}` : ''
+  const pageContextInit: PageContextInit = {
+    urlOriginal: uri + queryString,
+    pageProps: {},
+    documentProps: {
+      title: 'Personal Website',
+      description: 'My personal website'
     }
   }
   
-  const { body, statusCode, contentType } = httpResponse
-  return {
-    statusCode,
-    body,
-    headers: { 'Content-Type': contentType }
+  try {
+    const pageContext = await renderPage(pageContextInit)
+    const { httpResponse } = pageContext
+    
+    if (!httpResponse) {
+      return {
+        status: '404',
+        statusDescription: 'Not Found',
+        headers: {
+          'content-type': [{ key: 'Content-Type', value: 'text/plain' }]
+        },
+        body: 'Not Found'
+      }
+    }
+    
+    const { body, statusCode, contentType } = httpResponse
+    
+    return {
+      status: statusCode.toString(),
+      statusDescription: getStatusDescription(statusCode),
+      headers: {
+        'content-type': [{ key: 'Content-Type', value: contentType }],
+        'cache-control': [{ key: 'Cache-Control', value: 'max-age=0' }]
+      },
+      body
+    }
+  } catch (error) {
+    console.error('Error rendering page:', error)
+    return {
+      status: '500',
+      statusDescription: 'Internal Server Error',
+      headers: {
+        'content-type': [{ key: 'Content-Type', value: 'text/plain' }]
+      },
+      body: 'Internal Server Error'
+    }
   }
+}
+
+// Helper function for status descriptions
+function getStatusDescription(statusCode: number): string {
+  const statusMap: Record<number, string> = {
+    200: 'OK',
+    301: 'Moved Permanently',
+    302: 'Found',
+    304: 'Not Modified',
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    500: 'Internal Server Error'
+  }
+  
+  return statusMap[statusCode] || 'Unknown'
 }
 
 // Start server if running locally (not as Lambda)
 const startLocalServer = async () => {
-  // For development, set up Vite dev server
+  // Import Vite only when needed for development
   if (isDev && isLocal) {
+    const { createServer } = await import('vite')
     const vite = await createServer({
       root,
       server: { middlewareMode: false }
@@ -83,8 +127,13 @@ const startLocalServer = async () => {
     }
     
     // Handle SSR for all other routes
-    const pageContextInit = {
-      urlOriginal: pathname + (search || '')
+    const pageContextInit: PageContextInit = {
+      urlOriginal: pathname + (search || ''),
+      pageProps: {},
+      documentProps: {
+        title: 'Personal Website',
+        description: 'My personal website'
+      }
     }
     
     const pageContext = await renderPage(pageContextInit)
