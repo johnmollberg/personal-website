@@ -1,9 +1,8 @@
 import { hydrateRoot } from 'react-dom/client'
-import { PageShell } from '../PageShell'
-import type { PageContext } from '../types'
+import { PageShell } from '../../components/page/PageShell'
 
 // This function is called by vike upon navigation
-export async function onRenderClient(pageContext: PageContext) {
+export async function onRenderClient(pageContext: Vike.PageContext) {
   console.log("Client-side rendering starting...")
   const container = document.getElementById('root')
   if (!container) {

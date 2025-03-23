@@ -3,6 +3,8 @@ import { renderPage } from 'vike/server'
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda'
 import { createServer as createHttpServer } from 'http'
 import { parse } from 'url'
+// Import type definitions from Vike
+import 'vike/types'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isDev = process.env.NODE_ENV === 'development'
@@ -10,7 +12,7 @@ const isLocal = process.env.IS_LOCAL === 'true'
 const root = process.cwd()
 
 // Handler for AWS Lambda
-export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEvent, _context: Context): Promise<APIGatewayProxyResult> => {
   const { path, queryStringParameters } = event
   
   // Create URL-like query string
