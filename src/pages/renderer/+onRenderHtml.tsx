@@ -3,10 +3,8 @@ import { escapeInject, dangerouslySkipEscape } from 'vike/server'
 import { PageShell } from '../PageShell'
 import type { PageContext } from '../types'
 
-// List of pageContext properties that should be available in the browser
-export const passToClient = ['pageProps', 'urlPathname']
-
-export async function render(pageContext: PageContext) {
+export async function onRenderHtml(pageContext: PageContext) {
+  console.log('server rendering')
   const { Page, pageProps } = pageContext
   const pageHtml = renderToString(
     <PageShell pageContext={pageContext}>
@@ -27,7 +25,7 @@ export async function render(pageContext: PageContext) {
         <title>${title}</title>
       </head>
       <body>
-        <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>
+        <div id="root">${dangerouslySkipEscape(pageHtml)}</div>
       </body>
     </html>`
 }

@@ -36,21 +36,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@brillout/import@npm:^0.2.6":
+"@brillout/import@npm:^0.2.3, @brillout/import@npm:^0.2.6":
   version: 0.2.6
   resolution: "@brillout/import@npm:0.2.6"
   checksum: 10c0/ed3bccaafa659753dac334cc68cff0594ee9c41e123f99d6bd936fe1f1adfcace4f846d82015f9b2c5ad88a0ee3efd5b7c3d029fb7048df6dcdf76f84b0e128b
   languageName: node
   linkType: hard
 
-"@brillout/json-serializer@npm:^0.5.15":
+"@brillout/json-serializer@npm:^0.5.1, @brillout/json-serializer@npm:^0.5.15":
   version: 0.5.15
   resolution: "@brillout/json-serializer@npm:0.5.15"
   checksum: 10c0/eb04c5f8f4d736a5494eb7b7e6ec8f80a913fd76bf462ff593c886e17e67729270a2aaaba17523d34a8b8b660ed9999ee18af04b6b77a9c68179ef4a83a00759
   languageName: node
   linkType: hard
 
-"@brillout/picocolors@npm:^1.0.26":
+"@brillout/picocolors@npm:^1.0.11, @brillout/picocolors@npm:^1.0.26":
   version: 1.0.26
   resolution: "@brillout/picocolors@npm:1.0.26"
   checksum: 10c0/418e991e9d8577fb9ecafcf2a8c0d8ebf6ae92389ccc07880d7ae7c72d97b220274e448b2761b34145c674d2ba302caa1657ec582fa2f2a394736c408c1c579b
@@ -2500,6 +2500,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isbot-fast@npm:1.2.0":
+  version: 1.2.0
+  resolution: "isbot-fast@npm:1.2.0"
+  checksum: 10c0/192a778ee5261c5555290472b154cfa8fee1b9bd8fbaa46c4632590d01fe21f8c04b412fceb42bf0c505021538c560758385542875888aaa46c41b229e786226
+  languageName: node
+  linkType: hard
+
 "isexe@npm:^2.0.0":
   version: 2.0.0
   resolution: "isexe@npm:2.0.0"
@@ -3018,6 +3025,7 @@ __metadata:
     typescript: "npm:~5.7.2"
     typescript-eslint: "npm:^8.24.1"
     vike: "npm:^0.4.226"
+    vike-react: "npm:^0.6.1"
     vite: "npm:^6.2.0"
   languageName: unknown
   linkType: soft
@@ -3121,6 +3129,21 @@ __metadata:
   peerDependencies:
     react: ^19.0.0
   checksum: 10c0/a36ce7ab507b237ae2759c984cdaad4af4096d8199fb65b3815c16825e5cfeb7293da790a3fc2184b52bfba7ba3ff31c058c01947aff6fd1a3701632aabaa6a9
+  languageName: node
+  linkType: hard
+
+"react-streaming@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "react-streaming@npm:0.4.2"
+  dependencies:
+    "@brillout/import": "npm:^0.2.3"
+    "@brillout/json-serializer": "npm:^0.5.1"
+    "@brillout/picocolors": "npm:^1.0.11"
+    isbot-fast: "npm:1.2.0"
+  peerDependencies:
+    react: ">=19"
+    react-dom: ">=19"
+  checksum: 10c0/9771cbf826df7f74a27fe80c1c9a4d23aadb9863a50515f86d0fb0f6319f9592e960be94b8d85adaa733c1b873cd82621a76966b703e08ed77f361ec54e2415e
   languageName: node
   linkType: hard
 
@@ -3709,6 +3732,19 @@ __metadata:
   version: 3.0.1
   resolution: "v8-compile-cache-lib@npm:3.0.1"
   checksum: 10c0/bdc36fb8095d3b41df197f5fb6f11e3a26adf4059df3213e3baa93810d8f0cc76f9a74aaefc18b73e91fe7e19154ed6f134eda6fded2e0f1c8d2272ed2d2d391
+  languageName: node
+  linkType: hard
+
+"vike-react@npm:^0.6.1":
+  version: 0.6.1
+  resolution: "vike-react@npm:0.6.1"
+  dependencies:
+    react-streaming: "npm:^0.4.2"
+  peerDependencies:
+    react: ">=19"
+    react-dom: ">=19"
+    vike: ">=0.4.182"
+  checksum: 10c0/e6d3ec67833049e136ee09fa9f28f248dabd8a6b08c79323697a96a5758d34759c2b5b86cf2d65d545650c0bd1713f2f774d0fde4463a4456162c973702771b0
   languageName: node
   linkType: hard
 

@@ -3,11 +3,11 @@ import { PageShell } from '../PageShell'
 import type { PageContext } from '../types'
 
 // This function is called by vike upon navigation
-export async function render(pageContext: PageContext) {
+export async function onRenderClient(pageContext: PageContext) {
   console.log("Client-side rendering starting...")
-  const container = document.getElementById('page-view')
+  const container = document.getElementById('root')
   if (!container) {
-    console.error('Could not find #page-view element')
+    console.error('Could not find #root element')
     return
   }
 
