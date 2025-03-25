@@ -1,5 +1,12 @@
 # Guidance for Claude on Personal Website Project
 
+## Project Context
+This is a personal website built with:
+- React + TypeScript
+- Vike (previously Vite) for SSR
+- Hosted on AWS/CloudFront
+- Recent migration from Vite to Vike
+
 ## Commands
 - **Install**: `yarn install`
 - **Dev Server**: `yarn dev` 
@@ -8,6 +15,7 @@
 - **Lint**: `yarn lint`
 - **Test**: `yarn test`
 - **Single Test**: `yarn test <test-path>`
+- **Deploy Static**: `node scripts/deploy-static.js`
 - **Deploy Infrastructure**: `cd infra && cdk deploy`
 
 ## Code Style Guidelines
@@ -20,3 +28,44 @@
 - **Statsig**: Use for feature flags and content management
 - **AWS CDK**: TypeScript with L2 constructs for infrastructure
 - **Comments**: JSDoc format for functions, minimal inline comments
+
+## Project History
+- Migrated from Vite CLI to Vike framework
+- Files moved from src/pages/index and src/pages/renderer to src/pages root
+- CloudFront configuration added (cf-config.json)
+- Server-side rendering implemented
+
+## Session Context
+Add important context from each Claude session here to ensure continuity between sessions. Include:
+- Key decisions made
+- Problems solved
+- Changes implemented
+- Known issues
+- Current priorities
+
+### 2025-03-24
+- Fixed server bundling issue with Vike modules
+  - Added 'vike' and 'vike-react' to noExternal list in vite.config.ts
+  - Added makeAbsoluteExternalsRelative: false to rollup options
+  - Problem: dist/server/index.js had unbundled import from 'vike/server'
+  - Added custom Vite plugin to inject 'import './entry.js'' only in the production server build
+    - Added directly at the beginning of the bundled file to avoid tree-shaking
+    - Implemented in the closeBundle hook that runs after bundling is complete
+- Fixed Lambda@Edge issues with CloudFront
+  - Updated Lambda handler to check for valid event structure
+  - Added comprehensive logging for debugging
+  - Added CloudFront logging to S3 bucket
+  - Ensured proper IAM permissions for Lambda@Edge
+  - Set cache headers to no-cache for dynamic content
+- Updated deployment process
+  - Added DeploymentTimestamp parameter to CloudFormation template
+  - Modified deploy scripts to include unique timestamp for each deployment
+  - This ensures a new Lambda@Edge version is published with each deployment
+
+## Persistence Instructions
+IMPORTANT: When completing significant changes, always update this file with:
+1. New context gained about the project
+2. Any important decisions made
+3. New components or patterns introduced
+4. Changes to project structure or configuration
+5. Current work in progress

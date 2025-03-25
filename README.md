@@ -76,6 +76,49 @@ The deployment creates:
 - S3 bucket for static assets
 - CloudFront distribution for caching and CDN
 
+### AWS IAM Policy for Deployment
+The following policy should be attached to the IAM user or role responsible for deploying this application:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetBucketLocation",
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject",
+                "s3:PutBucketPolicy",
+                "cloudfront:CreateDistribution",
+                "cloudfront:GetDistribution",
+                "cloudfront:UpdateDistribution",
+                "cloudfront:CreateInvalidation",
+                "lambda:CreateFunction",
+                "lambda:GetFunction",
+                "lambda:UpdateFunctionCode",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:AddPermission",
+                "lambda:PublishVersion",
+                "lambda:CreateAlias",
+                "lambda:UpdateAlias",
+                "iam:PassRole",
+                "cloudformation:CreateStack",
+                "cloudformation:UpdateStack",
+                "cloudformation:DescribeStacks",
+                "cloudformation:DeleteStack",
+                "cloudformation:ValidateTemplate"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+This policy provides the minimum permissions needed to deploy and manage the application's AWS resources.
+
 ## Lambda@Edge Architecture
 
 This project uses Lambda@Edge for server-side rendering, which offers several benefits:

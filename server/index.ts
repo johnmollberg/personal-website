@@ -1,22 +1,49 @@
 import { renderPage } from 'vike/server'
 import type { CloudFrontRequestEvent, CloudFrontRequestResult, Context } from 'aws-lambda'
-import { createServer as createHttpServer } from 'http'
-import { parse } from 'url'
+import { createServer as createHttpServer } from 'node:http'
+import { parse } from 'node:url'
 // Import type definitions from Vike
 import type { PageContextInit } from '../src/pages/vike.d.ts'
+
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isDev = process.env.NODE_ENV === 'development'
 const isLocal = process.env.IS_LOCAL === 'true'
 const root = process.cwd()
 
+
+
 // Handler for AWS Lambda@Edge (origin-request function for CloudFront)
-export const handler = async (event: CloudFrontRequestEvent, _context: Context): Promise<CloudFrontRequestResult> => {
+export const handler = async (event: CloudFrontRequestEvent, context: Context): Promise<CloudFrontRequestResult> => {
+  // Check if event has the expected structure
+  if (!event.Records || !event.Records[0] || !event.Records[0].cf) {
+    console.error('Invalid event structure:', JSON.stringify(event));
+    return {
+      status: '500',
+      statusDescription: 'Internal Server Error',
+      headers: {
+        'content-type': [{ key: 'Content-Type', value: 'text/plain' }]
+      },
+      body: 'Server configuration error'
+    }
+  }
+  
   const request = event.Records[0].cf.request
   const { uri, querystring } = request
   
+  // Log detailed request information
+  console.log('Request details:', JSON.stringify({
+    uri,
+    querystring,
+    method: request.method,
+    clientIp: request.clientIp,
+    headers: request.headers
+  }));
+  
   // Skip processing for static assets - let CloudFront/S3 handle them
   if (uri.startsWith('/assets/')) {
+    // Ensure we're returning the original request to allow S3 origin to handle it
+    console.log('Passing static asset request to origin:', uri);
     return request
   }
   
@@ -48,25 +75,55 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
     
     const { body, statusCode, contentType } = httpResponse
     
-    return {
+    // Create the response object
+    const response = {
       status: statusCode.toString(),
       statusDescription: getStatusDescription(statusCode),
       headers: {
         'content-type': [{ key: 'Content-Type', value: contentType }],
-        'cache-control': [{ key: 'Cache-Control', value: 'max-age=0' }]
+        'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+        'x-lambda-processed': [{ key: 'X-Lambda-Processed', value: 'true' }]
       },
       body
-    }
+    };
+    
+    // Log the response (excluding the full body for brevity)
+    console.log('Sending response:', JSON.stringify({
+      status: response.status,
+      statusDescription: response.statusDescription,
+      headers: response.headers,
+      bodyLength: body.length
+    }));
+    
+    return response;
   } catch (error) {
     console.error('Error rendering page:', error)
-    return {
+    
+    // Include detailed error information for debugging
+    const errorDetails = typeof error === 'object' ? 
+      JSON.stringify(error, Object.getOwnPropertyNames(error)) : 
+      String(error);
+    
+    // Create error response with debugging info
+    const response = {
       status: '500',
       statusDescription: 'Internal Server Error',
       headers: {
-        'content-type': [{ key: 'Content-Type', value: 'text/plain' }]
+        'content-type': [{ key: 'Content-Type', value: 'text/plain' }],
+        'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+        'x-lambda-error': [{ key: 'X-Lambda-Error', value: 'true' }]
       },
-      body: 'Internal Server Error'
-    }
+      // In production, you might want to remove the detailed error message
+      body: `Internal Server Error\n\nDebug info: ${errorDetails}`
+    };
+    
+    console.log('Sending error response:', JSON.stringify({
+      status: response.status,
+      statusDescription: response.statusDescription,
+      headers: response.headers
+    }));
+    
+    return response;
   }
 }
 

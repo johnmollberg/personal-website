@@ -6,7 +6,22 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "allowImportingTsExtensions": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "isolatedModules": true,
+    "skipLibCheck": true
   },
-  "include": ["server/**/*.ts"]
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "NodeNext"
+    }
+  },
+  "include": ["server/**/*.ts"],
+  "compilerOptions": {
+    "preserveSymlinks": true
+  }
 }

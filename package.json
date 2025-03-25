@@ -4,20 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vike build && tsc -p tsconfig.server.json",
+    "build": "vike build",
     "lint": "eslint .",
-    "preview": "cross-env IS_LOCAL=true NODE_ENV=production node --loader ts-node/esm ./server/index.ts",
     "dev": "cross-env IS_LOCAL=true NODE_ENV=development vike dev",
-    "serve": "cross-env NODE_ENV=production node ./dist/server/index.js",
-    "deploy": "sam build --region us-east-1 && sam deploy --region us-east-1",
-    "deploy:guided": "sam build --region us-east-1 && sam deploy --guided --region us-east-1",
+    "deploy": "yarn build && sam deploy --resolve-s3 --stack-name personal-website --region us-east-1 --capabilities CAPABILITY_IAM --parameter-overrides DeploymentTimestamp=$(date +%s)",
+    "deploy:guided": "yarn build && sam deploy --guided --stack-name personal-website --region us-east-1 --capabilities CAPABILITY_IAM --parameter-overrides DeploymentTimestamp=$(date +%s)",
     "deploy:static": "node scripts/deploy-static.js",
-    "deploy:all": "yarn build && yarn deploy && yarn deploy:static",
-    "invalidate-cache": "aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query \"DistributionList.Items[?Aliases.Items[0]=='YOUR_DOMAIN_HERE'].Id\" --output text) --paths \"/*\""
+    "deploy:all": "yarn deploy && yarn deploy:static",
+    "invalidate-cache": "aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query \"DistributionList.Items[?DomainName=='d3uk1vljw85z1q.cloudfront.net'].Id\" --output text) --paths \"/*\"",
+    "upload-assets": "aws s3 sync ./dist/client/assets s3://personal-website-staticassets-fqbizqr4pgd2/assets --cache-control \"max-age=31536000,public\" --acl public-read"
   },
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "vike": "^0.4.226",
     "vike-react": "^0.6.1"
   },
   "devDependencies": {
@@ -38,7 +38,6 @@
     "ts-node": "^10.9.2",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
-    "vike": "^0.4.226",
     "vite": "^6.2.0"
   },
   "packageManager": "yarn@4.7.0"

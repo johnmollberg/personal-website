@@ -2,30 +2,32 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Personal website with server-side rendering using Vike and React deployed with Lambda@Edge
 
+Parameters:
+  DeploymentTimestamp:
+    Type: String
+    Description: Timestamp for this deployment (used to generate unique Lambda versions)
+    Default: '0000000000'
+
 Globals:
   Function:
     Timeout: 30
     MemorySize: 512
-    Environment:
-      Variables:
-        NODE_ENV: production
 
 Resources:
   # Lambda@Edge function for SSR
   PersonalWebsiteFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./
-      Handler: dist/server/index.handler
-      Runtime: nodejs20.x
+      CodeUri: ./dist/server
+      Handler: index.handler
+      Runtime: nodejs22.x  # Using latest Node.js 22.x runtime
       Architectures:
         - x86_64
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          NODE_ENV: production
       # Lambda@Edge functions must be deployed to us-east-1
       # and referenced from CloudFront by version/alias
+      # NOTE: Lambda@Edge functions cannot have environment variables
+      Timeout: 5  # Lambda@Edge has a maximum timeout of 5 seconds for origin-request
+      MemorySize: 1024  # Increased memory for better performance
       FunctionUrlConfig:
         AuthType: NONE
         Cors:
@@ -35,7 +37,6 @@ Resources:
             - GET
             - POST
             - HEAD
-            - OPTIONS
           AllowHeaders:
             - '*'
       Role: !GetAtt PersonalWebsiteFunctionRole.Arn
@@ -52,18 +53,88 @@ Resources:
               Service:
                 - lambda.amazonaws.com
                 - edgelambda.amazonaws.com
+                - cloudfront.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+      Policies:
+        - PolicyName: LambdaEdgeExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+              - Effect: Allow
+                Action: 
+                  - 'lambda:GetFunction'
+                  - 'lambda:EnableReplication*'
+                  - 'iam:CreateServiceLinkedRole'
+                  - 'cloudfront:UpdateDistribution'
+                Resource: '*'
+
+  # S3 bucket for CloudFront access logs
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      VersioningConfiguration:
+        Status: Suspended
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteLogsAfter30Days
+            Status: Enabled
+            ExpirationInDays: 30
+  
+  # Log delivery permissions using a bucket ACL
+  LoggingBucketBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoggingBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Action: 
+              - s3:PutObject
+            Resource: !Sub "arn:aws:s3:::${LoggingBucket}/*"
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 
+              - s3:GetBucketAcl
+              - s3:PutBucketAcl
+            Resource: !Sub "arn:aws:s3:::${LoggingBucket}"
 
   # S3 bucket for static assets
   StaticAssets:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: index.html
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
 
   # Bucket policy to allow public reading of static assets
   StaticAssetsBucketPolicy:
@@ -90,6 +161,10 @@ Resources:
               HTTPSPort: 443
               OriginProtocolPolicy: http-only
         Enabled: true
+        Logging:
+          Bucket: !GetAtt LoggingBucket.DomainName
+          Prefix: 'cloudfront-logs/'
+          IncludeCookies: false
         DefaultCacheBehavior:
           TargetOriginId: S3Static
           ViewerProtocolPolicy: redirect-to-https
@@ -98,9 +173,16 @@ Resources:
           ForwardedValues:
             QueryString: true
             Cookies:
-              Forward: none
+              Forward: all
             Headers:
               - Host
+              - Origin
+              - Referer
+              - User-Agent
+          Compress: true
+          DefaultTTL: 0
+          MinTTL: 0
+          MaxTTL: 0
           LambdaFunctionAssociations:
             - EventType: origin-request
               LambdaFunctionARN: !Ref PersonalWebsiteFunctionVersion
@@ -136,7 +218,9 @@ Resources:
     Type: AWS::Lambda::Version
     Properties:
       FunctionName: !Ref PersonalWebsiteFunction
-      Description: Version for Lambda@Edge
+      Description: !Sub "Version for Lambda@Edge deployed on ${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-${DeploymentTimestamp}"
+      # The Description with Timestamp ensures each deployment creates a new unique version ID
+
 
 Outputs:
   PersonalWebsiteFunction:

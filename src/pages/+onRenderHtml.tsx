@@ -1,6 +1,6 @@
 import { renderToString } from 'react-dom/server'
 import { escapeInject, dangerouslySkipEscape } from 'vike/server'
-import { PageShell } from '../../components/page/PageShell'
+import { PageShell } from '../components/page/PageShell'
 
 export async function onRenderHtml(pageContext: Vike.PageContext) {
   console.log('server rendering')

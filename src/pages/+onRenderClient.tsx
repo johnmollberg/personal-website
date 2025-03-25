@@ -1,5 +1,5 @@
 import { hydrateRoot } from 'react-dom/client'
-import { PageShell } from '../../components/page/PageShell'
+import { PageShell } from '../components/page/PageShell'
 
 // This function is called by vike upon navigation
 export async function onRenderClient(pageContext: Vike.PageContext) {

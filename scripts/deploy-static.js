@@ -2,15 +2,16 @@
 
 import { execSync } from 'child_process';
 import path from 'path';
-import * as cdk from 'aws-cdk-lib';
-import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
 
-// Deploy static assets to S3 directly
-const deployStaticAssets = async () => {
+// Deploy infrastructure with SAM CLI
+const deploySAM = () => {
   try {
-    console.log('Deploying static assets to S3');
+    console.log('Building and deploying infrastructure with SAM CLI');
+    
+    // Run the SAM deploy command
+    console.log('Deploying SAM template...');
+    execSync('sam deploy --resolve-s3 --stack-name personal-website --capabilities CAPABILITY_IAM --no-fail-on-empty-changeset', 
+      { stdio: 'inherit' });
     
     // Get the stack outputs to find our S3 bucket
     const cloudformationOutput = execSync('aws cloudformation describe-stacks --stack-name personal-website --query "Stacks[0].Outputs" --output json', { encoding: 'utf-8' });
@@ -37,7 +38,7 @@ const deployStaticAssets = async () => {
     if (cloudfrontOutput) {
       const distributionDomain = cloudfrontOutput.OutputValue;
       // Extract distribution ID (we need it for invalidation)
-      const distributionId = await getDistributionIdFromDomain(distributionDomain);
+      const distributionId = getDistributionIdFromDomain(distributionDomain);
       
       if (distributionId) {
         console.log(`Creating CloudFront invalidation for distribution: ${distributionId}`);
@@ -46,15 +47,15 @@ const deployStaticAssets = async () => {
       }
     }
     
-    console.log('Static assets deployed successfully');
+    console.log('Deployment completed successfully');
   } catch (error) {
-    console.error('Error deploying static assets:', error.message);
+    console.error('Error during deployment:', error.message);
     process.exit(1);
   }
 };
 
 // Helper to get CloudFront distribution ID from domain name
-const getDistributionIdFromDomain = async (domain) => {
+const getDistributionIdFromDomain = (domain) => {
   try {
     const result = execSync(`aws cloudfront list-distributions --query "DistributionList.Items[?DomainName=='${domain}'].Id" --output text`, 
       { encoding: 'utf-8' });
@@ -66,4 +67,4 @@ const getDistributionIdFromDomain = async (domain) => {
 };
 
 // Main execution
-deployStaticAssets();
+deploySAM();
