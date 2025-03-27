@@ -51,11 +51,11 @@ export default defineConfig(({ command, mode, isSsrBuild }) => {
         allow: ['./src', './pages', '.']
       }
     },
-    ssr: {
+    ssr: isProduction ? {
       // Bundle all dependencies for Lambda environment
       external: ['vite'],
       noExternal: true,
-    },
+    } : undefined,
     // Server build configuration
     build: isSsrBuild ? {
       ssr: true,

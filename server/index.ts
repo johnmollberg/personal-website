@@ -5,6 +5,7 @@ import { parse } from 'node:url'
 // Import type definitions from Vike
 import type { PageContextInit } from '../src/pages/vike.d.ts'
 
+console.log('process.env.NODE_ENV', process.env.NODE_ENV)
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isDev = process.env.NODE_ENV === 'development'
