@@ -14,6 +14,7 @@ This is a personal website built with:
 - **Preview Build**: `yarn preview`
 - **Lint**: `yarn lint`
 - **Test**: `yarn test`
+- **Test Watch Mode**: `yarn test:watch`
 - **Single Test**: `yarn test <test-path>`
 - **Deploy Static**: `node scripts/deploy-static.js`
 - **Deploy Infrastructure**: `cd infra && cdk deploy`
@@ -42,6 +43,14 @@ Add important context from each Claude session here to ensure continuity between
 - Changes implemented
 - Known issues
 - Current priorities
+
+### 2025-03-27
+- Added Jest testing configuration
+  - Added test and test:watch scripts to package.json
+  - Created Jest configuration files (jest.config.ts, jest.setup.ts)
+  - Added file and style mocks for testing
+  - Added sample test for App component
+  - Installed Jest and React Testing Library dependencies
 
 ### 2025-03-24
 - Fixed server bundling issue with Vike modules
