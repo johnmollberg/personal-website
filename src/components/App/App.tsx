@@ -8,7 +8,7 @@ const WebVitals = lazy(async () => {
   return { default: module.WebVitals }
 })
 
-function App() {
+const App = () => {
   const [count, setCount] = useState(0)
 
   return (

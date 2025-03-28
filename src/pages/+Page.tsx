@@ -1,6 +1,6 @@
 import App from '../components/App/App'
 
-export function Page() {
+export const Page = () => {
   console.log('rendering index page')
   return <App />
 }

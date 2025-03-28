@@ -148,7 +148,7 @@ const MetricChart: React.FC<{
   );
 };
 
-export function WebVitals() {
+export const WebVitals = () => {
   const [vitals, setVitals] = useState<Vitals>({
     cls: null,
     inp: null,

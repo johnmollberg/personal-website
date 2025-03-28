@@ -129,7 +129,7 @@ export const handler = async (event: CloudFrontRequestEvent, context: Context): 
 }
 
 // Helper function for status descriptions
-function getStatusDescription(statusCode: number): string {
+const getStatusDescription = (statusCode: number): string => {
   const statusMap: Record<number, string> = {
     200: 'OK',
     301: 'Moved Permanently',

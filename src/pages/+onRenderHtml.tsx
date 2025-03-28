@@ -2,7 +2,7 @@ import { renderToString } from 'react-dom/server'
 import { escapeInject, dangerouslySkipEscape } from 'vike/server'
 import { PageShell } from '../components/page/PageShell'
 
-export async function onRenderHtml(pageContext: Vike.PageContext) {
+export const onRenderHtml = async (pageContext: Vike.PageContext) => {
   console.log('server rendering')
   const { Page, pageProps } = pageContext
   const pageHtml = renderToString(
