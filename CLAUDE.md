@@ -16,8 +16,9 @@ This is a personal website built with:
 - **Test**: `yarn test`
 - **Test Watch Mode**: `yarn test:watch`
 - **Single Test**: `yarn test <test-path>`
-- **Deploy Static**: `node scripts/deploy-static.js`
-- **Deploy Infrastructure**: `cd infra && cdk deploy`
+- **Deploy Infrastructure**: `yarn deploy`
+- **Deploy Static Assets**: `yarn deploy:static`
+- **Deploy Everything**: `yarn deploy:all`
 
 ## Code Style Guidelines
 - **TypeScript**: Use TypeScript for all new code with proper type definitions
@@ -26,15 +27,14 @@ This is a personal website built with:
 - **Naming**: PascalCase for components, camelCase for functions/variables
 - **Error Handling**: Use try/catch blocks and propagate errors with context
 - **Formatting**: 2 space indentation, 80-column width
-- **Statsig**: Use for feature flags and content management
-- **AWS CDK**: TypeScript with L2 constructs for infrastructure
+- **AWS SAM**: Used for infrastructure deployment via template.yaml
 - **Comments**: JSDoc format for functions, minimal inline comments
 
 ## Project History
 - Migrated from Vite CLI to Vike framework
 - Files moved from src/pages/index and src/pages/renderer to src/pages root
-- CloudFront configuration added (cf-config.json)
-- Server-side rendering implemented
+- CloudFront distribution managed via template.yaml
+- Server-side rendering implemented with Lambda@Edge
 
 ## Session Context
 Add important context from each Claude session here to ensure continuity between sessions. Include:
@@ -45,6 +45,14 @@ Add important context from each Claude session here to ensure continuity between
 - Current priorities
 
 ### 2025-03-27
+- Fixed test warnings and cleaned up project
+  - Fixed React act() warnings in tests by properly wrapping component renders
+  - Removed obsolete cf-config.json and cf-config.json-e files
+  - Removed unused upload-assets script from package.json
+  - Removed aws-cdk-lib and constructs dependencies (using SAM instead of CDK)
+  - Fixed duplicate compilerOptions in tsconfig.server.json
+  - Updated README.md to reflect current project structure and commands
+  - Updated CLAUDE.md with correct deployment commands and technology stack
 - Added Jest testing configuration
   - Added test and test:watch scripts to package.json
   - Created Jest configuration files (jest.config.ts, jest.setup.ts)

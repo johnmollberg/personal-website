@@ -2,29 +2,31 @@
 
 ## Overview
 This project is an open-source personal website built with modern tools and frameworks to showcase engineering and AWS/IaC expertise. It includes:
-- **Vite (React)** for fast development
-- **AWS CDK** for infrastructure deployment
-- **Statsig** for static content management
-- **Google Analytics (future enhancement)**
+- **React + TypeScript** with modern patterns
+- **Vike** (previously Vite) for SSR
+- **AWS SAM** for infrastructure deployment
+- **Web Vitals** for performance tracking
 
 ## Tech Stack
-- **Frontend:** Vite (React) with Vike for SSR
+- **Frontend:** React + TypeScript with Vike for SSR
 - **Backend/Infrastructure:** AWS SAM (TypeScript)
-- **Content Management:** Statsig
-- **Analytics:** Google Analytics (via tagging server in future update)
 - **Hosting:** AWS (S3 + CloudFront + Lambda@Edge for SSR)
+- **Testing:** Jest + React Testing Library
 
 ## Project Structure
 ```
-website-project/
-│-- infra/                 # AWS CDK infrastructure code
+personal-website/
+│-- scripts/               # Deployment scripts
+│-- server/                # Server-side code for Lambda@Edge
 │-- src/
 │   │-- components/        # Reusable UI components
-│   │-- lib/               # Utility functions
-│   │-- main.jsx           # Vite entry file
-│   │-- App.jsx            # Root component
-│-- public/                # Static assets
+│   │   │-- App/           # Main application component
+│   │   │-- WebVitals/     # Web Vitals tracking component
+│   │   │-- page/          # Page layout components
+│   │-- pages/             # Vike page components
+│   │-- assets/            # Static assets and images
 │-- package.json
+│-- template.yaml          # SAM template for AWS infrastructure
 │-- README.md
 ```
 
@@ -32,21 +34,15 @@ website-project/
 1. **Clone the repository:**
    ```bash
    git clone <repo-url>
-   cd website-project
+   cd personal-website
    ```
 2. **Install dependencies:**
    ```bash
-   npm install
+   yarn install
    ```
-3. **Set up AWS CDK:**
+3. **Run the development server:**
    ```bash
-   cd infra
-   npm install
-   cdk bootstrap
-   ```
-4. **Run the development server:**
-   ```bash
-   npm run dev
+   yarn dev
    ```
 
 ## Deployment

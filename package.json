@@ -13,8 +13,7 @@
     "deploy:guided": "yarn build && sam deploy --guided --stack-name personal-website --region us-east-1 --capabilities CAPABILITY_IAM --parameter-overrides DeploymentTimestamp=$(date +%s)",
     "deploy:static": "node scripts/deploy-static.js",
     "deploy:all": "yarn deploy && yarn deploy:static",
-    "invalidate-cache": "aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query \"DistributionList.Items[?DomainName=='d3uk1vljw85z1q.cloudfront.net'].Id\" --output text) --paths \"/*\"",
-    "upload-assets": "aws s3 sync ./dist/client/assets s3://personal-website-staticassets-fqbizqr4pgd2/assets --cache-control \"max-age=31536000,public\" --acl public-read"
+    "invalidate-cache": "aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query \"DistributionList.Items[?DomainName=='d3uk1vljw85z1q.cloudfront.net'].Id\" --output text) --paths \"/*\""
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -34,9 +33,7 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react-swc": "^3.8.0",
-    "aws-cdk-lib": "^2.116.0",
     "aws-lambda": "^1.0.7",
-    "constructs": "^10.3.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",

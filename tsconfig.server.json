@@ -12,7 +12,8 @@
     "declarationMap": false,
     "sourceMap": false,
     "isolatedModules": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "preserveSymlinks": true
   },
   "ts-node": {
     "transpileOnly": true,
@@ -20,8 +21,5 @@
       "module": "NodeNext"
     }
   },
-  "include": ["server/**/*.ts"],
-  "compilerOptions": {
-    "preserveSymlinks": true
-  }
+  "include": ["server/**/*.ts"]
 }
