@@ -1,13 +1,21 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import reactLogo from '../../assets/react.svg'
 import viteLogo from '../../assets/vite.svg'
 import './App.css'
+
+const WebVitals = lazy(async () => {
+  const module = await import('../../components/WebVitals/WebVitals')
+  return { default: module.WebVitals }
+})
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
+      <Suspense fallback={null}>
+        <WebVitals />
+      </Suspense>
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

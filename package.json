@@ -20,7 +20,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "vike": "^0.4.226",
-    "vike-react": "^0.6.1"
+    "vike-react": "^0.6.1",
+    "web-vitals": "^4.2.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
