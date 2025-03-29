@@ -44,6 +44,20 @@ Add important context from each Claude session here to ensure continuity between
 - Known issues
 - Current priorities
 
+### 2025-03-29
+- Added favicon.ico to the website
+  - Created a simple favicon and placed it in the public directory
+  - Added favicon link to the HTML head in +onRenderHtml.tsx
+  - Updated deploy-static.js to copy favicon.ico to S3 bucket root
+  - Added favicon.ico to CloudFront invalidation paths
+- Modified CloudFront error handling for 404 responses
+  - Removed 404 error response handling from CloudFront configuration
+  - Updated Lambda handler to return proper 404 responses that won't trigger fallback
+  - Removed ErrorDocument from S3 bucket configuration
+- Updated deploy-static.js to wait for CloudFront invalidation to complete
+  - Added code to wait for invalidation using AWS CLI's wait command
+  - Provides better feedback and ensures deployment is fully complete
+
 ### 2025-03-27
 - Fixed test warnings and cleaned up project
   - Fixed React act() warnings in tests by properly wrapping component renders

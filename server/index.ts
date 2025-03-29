@@ -60,11 +60,14 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
     const { httpResponse } = pageContext
     
     if (!httpResponse) {
+      // Return a proper 404 response that won't trigger CloudFront's custom error handling
       return {
         status: '404',
         statusDescription: 'Not Found',
         headers: {
-          'content-type': [{ key: 'Content-Type', value: 'text/plain' }]
+          'content-type': [{ key: 'Content-Type', value: 'text/plain' }],
+          'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+          'x-lambda-processed': [{ key: 'X-Lambda-Processed', value: 'true' }]
         },
         body: 'Not Found'
       }

@@ -33,6 +33,11 @@ const deploySAM = () => {
     execSync(`aws s3 sync ./dist/client/assets s3://${s3BucketName}/assets --cache-control "max-age=31536000,public" --acl public-read`, 
       { stdio: 'inherit' });
     
+    // Deploy favicon.ico to S3 bucket root
+    console.log('Copying favicon.ico to S3 bucket root...');
+    execSync(`aws s3 cp ./public/favicon.ico s3://${s3BucketName}/favicon.ico --cache-control "max-age=86400,public" --acl public-read`,
+      { stdio: 'inherit' });
+    
     // Invalidate CloudFront cache for assets if needed
     const cloudfrontOutput = outputs.find(output => output.OutputKey === 'CloudFrontDistributionDomainName');
     if (cloudfrontOutput) {
@@ -42,8 +47,18 @@ const deploySAM = () => {
       
       if (distributionId) {
         console.log(`Creating CloudFront invalidation for distribution: ${distributionId}`);
-        execSync(`aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/assets/*"`, 
+        const invalidationResult = execSync(`aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/assets/*" "/favicon.ico"`, 
+          { encoding: 'utf-8' });
+        
+        // Parse the invalidation ID from the result
+        const invalidationData = JSON.parse(invalidationResult);
+        const invalidationId = invalidationData.Invalidation.Id;
+        
+        console.log(`Waiting for invalidation ${invalidationId} to complete...`);
+        execSync(`aws cloudfront wait invalidation-completed --distribution-id ${distributionId} --id ${invalidationId}`, 
           { stdio: 'inherit' });
+        
+        console.log(`CloudFront invalidation completed successfully`);
       }
     }
     
