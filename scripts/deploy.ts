@@ -2,8 +2,12 @@
 
 import { execSync } from 'child_process'
 
+interface DeploymentResult {
+  cloudfrontDomain: string;
+}
+
 // Deploy infrastructure and static assets
-const deploy = (environment = 'prod') => {
+const deploy = (environment: string = 'prod'): DeploymentResult => {
   try {
     console.log(`Starting deployment to ${environment} environment`)
     
@@ -30,7 +34,9 @@ const deploy = (environment = 'prod') => {
     const outputs = JSON.parse(cloudformationOutput)
     
     // Find S3 bucket name from stack outputs
-    const s3BucketOutput = outputs.find(output => output.OutputKey === 'StaticAssetsS3BucketName')
+    const s3BucketOutput = outputs.find((output: { OutputKey: string; OutputValue: string }) => 
+      output.OutputKey === 'StaticAssetsS3BucketName'
+    )
     
     if (!s3BucketOutput) {
       console.error('Could not find S3 bucket name in CloudFormation stack outputs')
@@ -50,12 +56,15 @@ const deploy = (environment = 'prod') => {
     // Deploy favicon.ico to S3 bucket root
     console.log('Copying favicon.ico to S3 bucket root...')
     execSync(
-      `aws s3 cp ./public/favicon.ico s3://${s3BucketName}/favicon.ico --cache-control "max-age=31536000,public" --acl public-read`,
+      `aws s3 cp ./public/favicon.ico s3://${s3BucketName}/favicon.ico --cache-control "max-age=86400,public" --acl public-read`,
       { stdio: 'inherit' }
     )
     
     // Invalidate CloudFront cache for assets if needed
-    const cloudfrontOutput = outputs.find(output => output.OutputKey === 'CloudFrontDistributionDomainName')
+    const cloudfrontOutput = outputs.find((output: { OutputKey: string; OutputValue: string }) => 
+      output.OutputKey === 'CloudFrontDistributionDomainName'
+    )
+    
     if (cloudfrontOutput) {
       const distributionDomain = cloudfrontOutput.OutputValue
       // Extract distribution ID (we need it for invalidation)
@@ -87,13 +96,13 @@ const deploy = (environment = 'prod') => {
       cloudfrontDomain: cloudfrontOutput?.OutputValue || 'Unknown'
     }
   } catch (error) {
-    console.error('Error during deployment:', error.message)
+    console.error('Error during deployment:', error instanceof Error ? error.message : String(error))
     process.exit(1)
   }
 }
 
 // Helper to get CloudFront distribution ID from domain name
-const getDistributionIdFromDomain = (domain) => {
+const getDistributionIdFromDomain = (domain: string): string | null => {
   try {
     const result = execSync(
       `aws cloudfront list-distributions --query "DistributionList.Items[?DomainName=='${domain}'].Id" --output text`, 
@@ -101,13 +110,13 @@ const getDistributionIdFromDomain = (domain) => {
     )
     return result.trim()
   } catch (error) {
-    console.error('Could not get CloudFront distribution ID:', error.message)
+    console.error('Could not get CloudFront distribution ID:', error instanceof Error ? error.message : String(error))
     return null
   }
 }
 
 // Main execution
-const main = () => {
+const main = (): void => {
   // Get environment argument from command line (default to prod)
   const args = process.argv.slice(2)
   const envArg = args.find(arg => arg.startsWith('--env='))

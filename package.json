@@ -10,9 +10,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     
-    "deploy:dev": "node scripts/deploy.js --env=dev",
-    "deploy:staging": "node scripts/deploy.js --env=staging",
-    "deploy:prod": "node scripts/deploy.js --env=prod"
+    "deploy:dev": "ts-node scripts/deploy.ts --env=dev",
+    "deploy:staging": "ts-node scripts/deploy.ts --env=staging",
+    "deploy:prod": "ts-node scripts/deploy.ts --env=prod",
+    
+    "deploy": "yarn deploy:prod"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.777.0",
