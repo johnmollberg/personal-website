@@ -18,5 +18,6 @@ declare global {
       data: {
         bootstrapValues?: ClientInitializeResponse
       }
+    }
   }
 }

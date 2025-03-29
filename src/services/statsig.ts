@@ -54,7 +54,7 @@ export const getClientInitializeResponse = async (user: StatsigUser) => {
     await initializeStatsigServer()
     console.log('user', user)
     return await StatsigServer.getClientInitializeResponse(
-      // @ts-expect-error
+      // @ts-expect-error Type mismatch between statsig-node and @statsig/js-client StatsigUser
       user,
     )
   } catch (error) {

@@ -39,8 +39,18 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
   
   // Create full URL for rendering
   const queryString = querystring ? `?${querystring}` : ''
+  
+  // Transform CloudFront headers format to simple key-value format for Vike
+  const headers: Record<string, string> = {}
+  Object.entries(request.headers).forEach(([key, values]) => {
+    if (values && values.length > 0) {
+      headers[key] = values[0].value
+    }
+  })
+  
   const stableID = request.headers['cookie']?.[0]?.value?.split('; ').find(row => row.startsWith('stableID='))?.split('=')[1] || randomUUID()
   console.log('stableID in handler', stableID)
+  
   const pageContextInit: PageContextInit = {
     urlOriginal: uri + queryString,
     pageProps: {},
@@ -48,6 +58,7 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
       title: 'Personal Website',
       description: 'My personal website'
     },
+    headers
   }
   
   try {
