@@ -1,41 +1,42 @@
 import { renderPage } from 'vike/server'
-import type { CloudFrontRequestEvent, CloudFrontRequestResult, Context } from 'aws-lambda'
+import type { CloudFrontRequest, CloudFrontRequestEvent, CloudFrontRequestResult, CloudFrontResultResponse } from 'aws-lambda'
 import { randomUUID } from 'node:crypto'
 import type { PageContextInit } from '../src/pages/vike.d.ts'
 
+const formatResponse = (response: Partial<CloudFrontResultResponse>) => {
+  const status = response.status || '500'
+  const statusDescription = getStatusDescription(Number(status))
+  return {
+    status,
+    statusDescription,
+    headers: {
+      'content-type': [{ key: 'Content-Type', value: 'text/plain' }],
+      ...response.headers,
+    },
+    body: response.body,
+    ...response,
+  }
+}
+
+const getOrGenerateStableID = (request: CloudFrontRequest) =>
+  request.headers['cookie']?.[0]?.value?.split('; ').find(row => row.startsWith('stableID='))?.split('=')[1] || randomUUID()
+
 // Handler for AWS Lambda@Edge (origin-request function for CloudFront)
-export const handler = async (event: CloudFrontRequestEvent, _context: Context): Promise<CloudFrontRequestResult> => {
+export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFrontRequestResult> => {
   // Check if event has the expected structure
-  if (!event.Records || !event.Records[0] || !event.Records[0].cf) {
-    console.error('Invalid event structure:', JSON.stringify(event));
-    return {
+  if (!event.Records || !event.Records[0] || !event.Records[0].cf || !event.Records[0].cf.request) {
+    console.error('Invalid event structure:', JSON.stringify(event))
+    return formatResponse({
       status: '500',
-      statusDescription: 'Internal Server Error',
-      headers: {
-        'content-type': [{ key: 'Content-Type', value: 'text/plain' }]
-      },
-      body: 'Server configuration error'
-    }
+      body: 'Server configuration error',
+    })
   }
   
   const request = event.Records[0].cf.request
   const { uri, querystring } = request
   
   // Log detailed request information
-  console.log('Request details:', JSON.stringify({
-    uri,
-    querystring,
-    method: request.method,
-    clientIp: request.clientIp,
-    headers: request.headers
-  }));
-  
-  // Skip processing for static assets - let CloudFront/S3 handle them
-  if (uri.startsWith('/assets/')) {
-    // Ensure we're returning the original request to allow S3 origin to handle it
-    console.log('Passing static asset request to origin:', uri);
-    return request
-  }
+  console.log('Request details:', JSON.stringify(request))
   
   // Create full URL for rendering
   const queryString = querystring ? `?${querystring}` : ''
@@ -48,7 +49,7 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
     }
   })
   
-  const stableID = request.headers['cookie']?.[0]?.value?.split('; ').find(row => row.startsWith('stableID='))?.split('=')[1] || randomUUID()
+  const stableID = getOrGenerateStableID(request)
   console.log('stableID in handler', stableID)
   
   const pageContextInit: PageContextInit = {
@@ -63,7 +64,7 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
   
   try {
     // Add logging of the init context
-    console.log('pageContextInit keys:', Object.keys(pageContextInit));
+    console.log('pageContextInit keys:', Object.keys(pageContextInit))
     
     // Ensure we're passing the statsigUser property correctly
     const pageContext = await renderPage(pageContextInit)
@@ -72,22 +73,21 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
     
     if (!httpResponse) {
       // Return a proper 404 response that won't trigger CloudFront's custom error handling
-      return {
+      return formatResponse({
         status: '404',
         statusDescription: 'Not Found',
         headers: {
           'content-type': [{ key: 'Content-Type', value: 'text/plain' }],
           'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
-          'x-lambda-processed': [{ key: 'X-Lambda-Processed', value: 'true' }]
         },
         body: 'Not Found'
-      }
+      })
     }
     
     const { body, statusCode, contentType } = httpResponse
     
     // Log pageContext to debug
-    console.log('pageContext keys:', Object.keys(pageContext));
+    console.log('pageContext keys:', Object.keys(pageContext))
     
     // Create the response object
     const response = {
@@ -97,10 +97,10 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
         'content-type': [{ key: 'Content-Type', value: contentType }],
         'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
         'x-lambda-processed': [{ key: 'X-Lambda-Processed', value: 'true' }],
-        'set-cookie': [{ key: 'Set-Cookie', value: 'stableID=' + stableID + '; Path=/; HttpOnly; Secure; SameSite=Strict' }]
+        'set-cookie': [{ key: 'Set-Cookie', value: 'stableID=' + stableID + '; Path=/; HttpOnly; SameSite=Strict' }]
       },
       body
-    };
+    }
     
     // Log the response (excluding the full body for brevity)
     console.log('Sending response:', JSON.stringify({
@@ -108,37 +108,35 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
       statusDescription: response.statusDescription,
       headers: response.headers,
       bodyLength: body.length
-    }));
+    }))
     
-    return response;
+    return response
   } catch (error) {
     console.error('Error rendering page:', error)
     
     // Include detailed error information for debugging
     const errorDetails = typeof error === 'object' ? 
       JSON.stringify(error, Object.getOwnPropertyNames(error)) : 
-      String(error);
+      String(error)
+
+    console.log('errorDetails', errorDetails)
     
     // Create error response with debugging info
-    const response = {
+    const response = formatResponse({
       status: '500',
-      statusDescription: 'Internal Server Error',
       headers: {
-        'content-type': [{ key: 'Content-Type', value: 'text/plain' }],
         'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
-        'x-lambda-error': [{ key: 'X-Lambda-Error', value: 'true' }]
       },
-      // In production, you might want to remove the detailed error message
-      body: `Internal Server Error\n\nDebug info: ${errorDetails}`
-    };
+      body: 'Internal Server Error',
+    })
     
     console.log('Sending error response:', JSON.stringify({
       status: response.status,
       statusDescription: response.statusDescription,
       headers: response.headers
-    }));
+    }))
     
-    return response;
+    return response
   }
 }
 

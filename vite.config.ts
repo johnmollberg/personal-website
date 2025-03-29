@@ -6,7 +6,7 @@ import fs from 'fs'
 import path from 'path'
 
 // https://vite.dev/config/
-export default defineConfig(({ command, mode, isSsrBuild }) => {
+export default defineConfig(({ mode, isSsrBuild }) => {
   const isProduction = mode === 'production'
   
   return {

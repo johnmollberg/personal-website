@@ -1,17 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
+import type {
+  Metric,
+  MetricRatingThresholds} from 'web-vitals'
 import {
   onCLS, onINP, onLCP, onFCP, onTTFB,
-  Metric,
   CLSThresholds,
   INPThresholds,
   LCPThresholds,
   FCPThresholds,
-  TTFBThresholds,
-  MetricRatingThresholds,
-} from 'web-vitals';
-import './WebVitals.css';
+  TTFBThresholds
+} from 'web-vitals'
+import './WebVitals.css'
 
-type Vitals = {
+interface Vitals {
   cls: number | null
   inp: number | null
   lcp: number | null
@@ -48,65 +49,65 @@ const units: Record<string, string> = {
 
 // Label formatting for each metric
 const formatValue = (metric: string, value: number | null): string => {
-  if (value === null) return 'Loading...';
+  if (value === null) return 'Loading...'
   
   // Format value based on metric type
-  let formattedValue = value;
+  let formattedValue = value
   
   // For CLS, show up to 2 decimal places
   if (metric === 'cls') {
-    formattedValue = Math.round(value * 100) / 100;
+    formattedValue = Math.round(value * 100) / 100
   } 
   // For time-based metrics, round to the nearest integer
   else {
-    formattedValue = Math.round(value);
+    formattedValue = Math.round(value)
   }
   
-  return `${formattedValue}${units[metric]}`;
+  return `${formattedValue}${units[metric]}`
 }
 
 // Performance scale for visualization
 const MetricChart: React.FC<{ 
-  metricName: string;
-  value: number | null;
+  metricName: string
+  value: number | null
 }> = ({ metricName, value }) => {
-  const isLoading = value === null;
+  const isLoading = value === null
   
-  const [good, needsImprovement] = thresholds[metricName];
-  const max = needsImprovement * 1.5; // Set max value for chart scale
+  const [good, needsImprovement] = thresholds[metricName]
+  const max = needsImprovement * 1.5 // Set max value for chart scale
   
   // Calculate position for the marker (percentage of the total width)
-  let position = 0;
+  let position = 0
   
   if (!isLoading) {
     if (value <= good) {
-      position = (value / good) * 33.3;
+      position = (value / good) * 33.3
     } else if (value <= needsImprovement) {
-      position = 33.3 + ((value - good) / (needsImprovement - good)) * 33.3;
+      position = 33.3 + ((value - good) / (needsImprovement - good)) * 33.3
     } else {
-      position = 66.6 + Math.min(33.3, ((value - needsImprovement) / (max - needsImprovement)) * 33.3);
+      position = 66.6 + Math.min(33.3, ((value - needsImprovement) / (max - needsImprovement)) * 33.3)
     }
     
     // Ensure position doesn't exceed 100%
-    position = Math.min(position, 100);
+    position = Math.min(position, 100)
   }
   
   // Determine value color class
-  let valueColorClass = 'metric-value-loading';
+  let valueColorClass = 'metric-value-loading'
   if (!isLoading) {
     if (value <= good) {
-      valueColorClass = 'metric-value-good';
+      valueColorClass = 'metric-value-good'
     } else if (value <= needsImprovement) {
-      valueColorClass = 'metric-value-needs-improvement';
+      valueColorClass = 'metric-value-needs-improvement'
     } else {
-      valueColorClass = 'metric-value-poor';
+      valueColorClass = 'metric-value-poor'
     }
   }
   
   // Handle click to open documentation
   const handleClick = () => {
-    window.open(docUrls[metricName], '_blank', 'noopener,noreferrer');
-  };
+    window.open(docUrls[metricName], '_blank', 'noopener,noreferrer')
+  }
   
   return (
     <div className="metric-chart" onClick={handleClick} role="link" aria-label={`Learn more about ${metricName.toUpperCase()}`}>
@@ -145,8 +146,8 @@ const MetricChart: React.FC<{
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export const WebVitals = () => {
   const [vitals, setVitals] = useState<Vitals>({
@@ -155,19 +156,19 @@ export const WebVitals = () => {
     lcp: null,
     fcp: null,
     ttfb: null,
-  });
+  })
 
   useEffect(() => {
     const updateMetric = (name: keyof Vitals) => (metric: Metric) => {
-      setVitals((prev) => ({ ...prev, [name]: metric.value }));
-    };
+      setVitals((prev) => ({ ...prev, [name]: metric.value }))
+    }
 
-    onCLS(updateMetric('cls'));
-    onINP(updateMetric('inp'));
-    onLCP(updateMetric('lcp'));
-    onFCP(updateMetric('fcp'));
-    onTTFB(updateMetric('ttfb'));
-  }, []);
+    onCLS(updateMetric('cls'))
+    onINP(updateMetric('inp'))
+    onLCP(updateMetric('lcp'))
+    onFCP(updateMetric('fcp'))
+    onTTFB(updateMetric('ttfb'))
+  }, [])
 
   return (
     <div className="web-vitals-container">
@@ -180,5 +181,5 @@ export const WebVitals = () => {
         <MetricChart metricName="ttfb" value={vitals.ttfb} />
       </div>
     </div>
-  );
+  )
 }

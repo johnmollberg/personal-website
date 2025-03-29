@@ -1,11 +1,11 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState } from 'react'
 import reactLogo from '../../assets/react.svg'
 import viteLogo from '../../assets/vite.svg'
 import './App.css'
 import { WebVitals } from '../WebVitals/WebVitals'
 
 
-function App() {
+export const App = () => {
   const [count, setCount] = useState(0)
 
   return (
@@ -35,4 +35,3 @@ function App() {
   )
 }
 
-export default App

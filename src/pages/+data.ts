@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { getClientInitializeResponse } from "../services/statsig"
-import { StatsigUser } from 'statsig-node'
+import type { StatsigUser } from 'statsig-node'
 
 
 export const data = async (pageContext: Vike.PageContext) => {

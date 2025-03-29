@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 import type { ClientInitializeResponse } from '@statsig/node'
 
-export type PageContextInit = {
+export interface PageContextInit {
   urlOriginal: string
   pageProps: PageProps
   documentProps: {

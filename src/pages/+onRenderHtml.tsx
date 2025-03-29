@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server'
 import { escapeInject, dangerouslySkipEscape } from 'vike/server'
 import { PageShell } from '../components/page/PageShell'
-import { OnRenderHtmlAsync } from 'vike/types'
+import type { OnRenderHtmlAsync } from 'vike/types'
 
 export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
   console.log('server rendering')
