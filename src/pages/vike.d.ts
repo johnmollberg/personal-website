@@ -1,20 +1,22 @@
 import type { JSX } from 'react'
-
-export type PageProps = {}
+import type { ClientInitializeResponse } from '@statsig/node'
 
 export type PageContextInit = {
-  pageProps?: PageProps
   urlOriginal: string
+  pageProps?: PageProps
   documentProps: {
     title?: string
     description?: string
   }
 }
-
 declare global {
   namespace Vike {
     interface PageContext extends PageContextInit {
       Page: (pageProps: PageProps) => JSX.Element
-    }
+      headers?: Record<string, string>
+      bootstrapValues?: ClientInitializeResponse
+      data: {
+        bootstrapValues?: ClientInitializeResponse
+      }
   }
 }

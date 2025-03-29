@@ -1,21 +1,10 @@
 import { renderPage } from 'vike/server'
 import type { CloudFrontRequestEvent, CloudFrontRequestResult, Context } from 'aws-lambda'
-import { createServer as createHttpServer } from 'node:http'
-import { parse } from 'node:url'
-// Import type definitions from Vike
+import { randomUUID } from 'node:crypto'
 import type { PageContextInit } from '../src/pages/vike.d.ts'
 
-console.log('process.env.NODE_ENV', process.env.NODE_ENV)
-
-const isProduction = process.env.NODE_ENV === 'production'
-const isDev = process.env.NODE_ENV === 'development'
-const isLocal = process.env.IS_LOCAL === 'true'
-const root = process.cwd()
-
-
-
 // Handler for AWS Lambda@Edge (origin-request function for CloudFront)
-export const handler = async (event: CloudFrontRequestEvent, context: Context): Promise<CloudFrontRequestResult> => {
+export const handler = async (event: CloudFrontRequestEvent, _context: Context): Promise<CloudFrontRequestResult> => {
   // Check if event has the expected structure
   if (!event.Records || !event.Records[0] || !event.Records[0].cf) {
     console.error('Invalid event structure:', JSON.stringify(event));
@@ -50,17 +39,24 @@ export const handler = async (event: CloudFrontRequestEvent, context: Context): 
   
   // Create full URL for rendering
   const queryString = querystring ? `?${querystring}` : ''
+  const stableID = request.headers['cookie']?.[0]?.value?.split('; ').find(row => row.startsWith('stableID='))?.split('=')[1] || randomUUID()
+  console.log('stableID in handler', stableID)
   const pageContextInit: PageContextInit = {
     urlOriginal: uri + queryString,
     pageProps: {},
     documentProps: {
       title: 'Personal Website',
       description: 'My personal website'
-    }
+    },
   }
   
   try {
+    // Add logging of the init context
+    console.log('pageContextInit keys:', Object.keys(pageContextInit));
+    
+    // Ensure we're passing the statsigUser property correctly
     const pageContext = await renderPage(pageContextInit)
+    
     const { httpResponse } = pageContext
     
     if (!httpResponse) {
@@ -76,6 +72,9 @@ export const handler = async (event: CloudFrontRequestEvent, context: Context): 
     
     const { body, statusCode, contentType } = httpResponse
     
+    // Log pageContext to debug
+    console.log('pageContext keys:', Object.keys(pageContext));
+    
     // Create the response object
     const response = {
       status: statusCode.toString(),
@@ -83,7 +82,8 @@ export const handler = async (event: CloudFrontRequestEvent, context: Context): 
       headers: {
         'content-type': [{ key: 'Content-Type', value: contentType }],
         'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
-        'x-lambda-processed': [{ key: 'X-Lambda-Processed', value: 'true' }]
+        'x-lambda-processed': [{ key: 'X-Lambda-Processed', value: 'true' }],
+        'set-cookie': [{ key: 'Set-Cookie', value: 'stableID=' + stableID + '; Path=/; HttpOnly; Secure; SameSite=Strict' }]
       },
       body
     };
@@ -143,82 +143,4 @@ const getStatusDescription = (statusCode: number): string => {
   }
   
   return statusMap[statusCode] || 'Unknown'
-}
-
-// Start server if running locally (not as Lambda)
-const startLocalServer = async () => {
-  // Import Vite only when needed for development
-  if (isDev && isLocal) {
-    const { createServer } = await import('vite')
-    const vite = await createServer({
-      root,
-      server: { middlewareMode: false }
-    })
-    
-    // Let Vite handle the server completely
-    await vite.listen()
-    vite.printUrls()
-    return
-  }
-  
-  // For production preview, use a simple HTTP server
-  const port = process.env.PORT || 3000
-  const server = createHttpServer(async (req, res) => {
-    const { pathname, search } = parse(req.url || '')
-    
-    // Serve static assets
-    if (pathname?.startsWith('/assets/')) {
-      // Simple redirect to dist/client/assets
-      const fs = await import('fs/promises')
-      try {
-        const filePath = `${root}/dist/client${pathname}`
-        const content = await fs.readFile(filePath)
-        // Set basic cache headers
-        res.setHeader('Cache-Control', 'max-age=31536000,public')
-        res.end(content)
-        return
-      } catch (e) {
-        res.statusCode = 404
-        res.end('Asset not found')
-        return
-      }
-    }
-    
-    // Handle SSR for all other routes
-    const pageContextInit: PageContextInit = {
-      urlOriginal: pathname + (search || ''),
-      pageProps: {},
-      documentProps: {
-        title: 'Personal Website',
-        description: 'My personal website'
-      }
-    }
-    
-    const pageContext = await renderPage(pageContextInit)
-    const { httpResponse } = pageContext
-    
-    if (!httpResponse) {
-      res.statusCode = 404
-      res.end('Not Found')
-      return
-    }
-    
-    const { body, statusCode, contentType } = httpResponse
-    res.statusCode = statusCode
-    res.setHeader('Content-Type', contentType)
-    res.end(body)
-  })
-  
-  server.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`)
-    console.log(`Environment: ${isProduction ? 'production' : 'development'}`)
-  })
-}
-
-// Only start the server if running directly (not being imported)
-if (isLocal || !process.env.AWS_LAMBDA_FUNCTION_NAME) {
-  startLocalServer().catch(err => {
-    console.error('Failed to start server:', err)
-    process.exit(1)
-  })
 }

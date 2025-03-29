@@ -26,6 +26,7 @@ Resources:
       # Lambda@Edge functions must be deployed to us-east-1
       # and referenced from CloudFront by version/alias
       # NOTE: Lambda@Edge functions cannot have environment variables
+      # We'll use a hardcoded secret name in the code instead
       Timeout: 5  # Lambda@Edge has a maximum timeout of 5 seconds for origin-request
       MemorySize: 1024  # Increased memory for better performance
       FunctionUrlConfig:
@@ -76,6 +77,11 @@ Resources:
                   - 'iam:CreateServiceLinkedRole'
                   - 'cloudfront:UpdateDistribution'
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'secretsmanager:GetSecretValue'
+                  - 'secretsmanager:DescribeSecret'
+                Resource: !Sub 'arn:aws:secretsmanager:us-east-1:${AWS::AccountId}:secret:statsig-credentials-??????'
 
   # S3 bucket for CloudFront access logs
   LoggingBucket:
