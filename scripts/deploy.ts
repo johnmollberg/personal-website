@@ -1,13 +1,59 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process'
+import { exec, spawn } from 'node:child_process'
+import { promisify } from 'node:util'
+import { createReadStream } from 'node:fs'
+import path from 'node:path'
+import { 
+  CloudFormationClient, 
+  DescribeStacksCommand
+} from '@aws-sdk/client-cloudformation'
+import { 
+  CloudFrontClient, 
+  ListDistributionsCommand,
+  CreateInvalidationCommand,
+  waitUntilInvalidationCompleted
+} from '@aws-sdk/client-cloudfront'
+import { 
+  S3Client, 
+  PutObjectCommand,
+} from '@aws-sdk/client-s3'
+
+// Convert exec to promise-based for commands we still need to execute
+const execAsync = promisify(exec)
+
+const execAsyncWithStdio = async (command: string) => {
+  console.log(`Running: ${command}`)
+  return new Promise<void>((resolve, reject) => {
+    const [cmd, ...args] = command.split(' ')
+    const child = spawn(cmd, args, { stdio: 'inherit' })
+    child.on('close', (code) => {
+      if (code === 0) resolve()
+      else reject(new Error(`Command failed with code ${code}`))
+    })
+  })
+}
+
+// Create AWS clients
+const region = 'us-east-1'
+const cloudformationClient = new CloudFormationClient({ region })
+const cloudfrontClient = new CloudFrontClient({ region })
+const s3Client = new S3Client({ region })
 
 interface DeploymentResult {
   cloudfrontDomain: string;
 }
 
+// Build the application using yarn script instead of Vite API
+// This avoids the Vike deprecation warning
+async function buildApplication(): Promise<void> {
+  console.log('Building application...')
+  await execAsyncWithStdio('yarn build')
+  console.log('Build completed successfully')
+}
+
 // Deploy infrastructure and static assets
-const deploy = (environment: string = 'prod'): DeploymentResult => {
+const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> => {
   try {
     console.log(`Starting deployment to ${environment} environment`)
     
@@ -15,86 +61,107 @@ const deploy = (environment: string = 'prod'): DeploymentResult => {
     const stackName = `personal-website-${environment}`
     const timestamp = Math.floor(Date.now() / 1000)
     
-    // Build the application
-    console.log('Building application...')
-    execSync('yarn build', { stdio: 'inherit' })
+    // Build the application using yarn script 
+    await buildApplication()
     
     // Run the SAM deploy command with environment parameter
+    // Note: We still use execAsync for SAM CLI as it doesn't have a JavaScript SDK
     console.log(`Deploying SAM template to ${stackName}...`)
-    execSync(
-      `sam deploy --resolve-s3 --stack-name ${stackName} --region us-east-1 --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} DeploymentTimestamp=${timestamp} --no-fail-on-empty-changeset`, 
-      { stdio: 'inherit' }
-    )
+    
+    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} DeploymentTimestamp=${timestamp} --no-fail-on-empty-changeset`)
     
     // Get the stack outputs to find our S3 bucket
-    const cloudformationOutput = execSync(
-      `aws cloudformation describe-stacks --stack-name ${stackName} --query "Stacks[0].Outputs" --output json`, 
-      { encoding: 'utf-8' }
+    console.log(`Getting CloudFormation outputs for stack: ${stackName}`)
+    const { Stacks } = await cloudformationClient.send(
+      new DescribeStacksCommand({ StackName: stackName })
     )
-    const outputs = JSON.parse(cloudformationOutput)
+    
+    if (!Stacks || Stacks.length === 0) {
+      throw new Error(`Stack ${stackName} not found`)
+    }
+    
+    const outputs = Stacks[0].Outputs || []
     
     // Find S3 bucket name from stack outputs
-    const s3BucketOutput = outputs.find((output: { OutputKey: string; OutputValue: string }) => 
-      output.OutputKey === 'StaticAssetsS3BucketName'
-    )
+    const s3BucketOutput = outputs.find(output => output.OutputKey === 'StaticAssetsS3BucketName')
     
-    if (!s3BucketOutput) {
-      console.error('Could not find S3 bucket name in CloudFormation stack outputs')
-      process.exit(1)
+    if (!s3BucketOutput || !s3BucketOutput.OutputValue) {
+      throw new Error('Could not find S3 bucket name in CloudFormation stack outputs')
     }
     
     const s3BucketName = s3BucketOutput.OutputValue
     console.log(`Deploying static assets to S3 bucket: ${s3BucketName}`)
     
-    // Deploy static assets to S3 using AWS CLI
+    // Upload static assets to S3
     console.log('Copying assets to S3 bucket...')
-    execSync(
-      `aws s3 sync ./dist/client/assets s3://${s3BucketName}/assets --cache-control "max-age=31536000,public" --acl public-read`, 
-      { stdio: 'inherit' }
-    )
     
-    // Deploy favicon.ico to S3 bucket root
+    // Note: For simplicity, we're still using AWS CLI for the sync operation
+    // A full SDK implementation would require listing all files and uploading each one
+    await execAsyncWithStdio(`aws s3 sync ./dist/client/assets s3://${s3BucketName}/assets --cache-control "max-age=31536000,public" --acl public-read`)
+    
+    // Upload favicon.ico to S3 bucket root (using SDK)
     console.log('Copying favicon.ico to S3 bucket root...')
-    execSync(
-      `aws s3 cp ./public/favicon.ico s3://${s3BucketName}/favicon.ico --cache-control "max-age=86400,public" --acl public-read`,
-      { stdio: 'inherit' }
+    const faviconPath = './public/favicon.ico'
+    const faviconStream = createReadStream(faviconPath)
+    
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: s3BucketName,
+        Key: 'favicon.ico',
+        Body: faviconStream,
+        CacheControl: 'max-age=86400,public',
+        ACL: 'public-read',
+        ContentType: 'image/x-icon'
+      })
     )
     
     // Invalidate CloudFront cache for assets if needed
-    const cloudfrontOutput = outputs.find((output: { OutputKey: string; OutputValue: string }) => 
-      output.OutputKey === 'CloudFrontDistributionDomainName'
-    )
+    const cloudfrontDomainOutput = outputs.find(output => output.OutputKey === 'CloudFrontDistributionDomainName')
+    let cloudfrontDomain = 'Unknown'
     
-    if (cloudfrontOutput) {
-      const distributionDomain = cloudfrontOutput.OutputValue
-      // Extract distribution ID (we need it for invalidation)
-      const distributionId = getDistributionIdFromDomain(distributionDomain)
+    if (cloudfrontDomainOutput?.OutputValue) {
+      cloudfrontDomain = cloudfrontDomainOutput.OutputValue
+      
+      // Get distribution ID from domain name
+      const distributionId = await getDistributionIdFromDomain(cloudfrontDomain)
       
       if (distributionId) {
         console.log(`Creating CloudFront invalidation for distribution: ${distributionId}`)
-        const invalidationResult = execSync(
-          `aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/assets/*" "/favicon.ico"`, 
-          { encoding: 'utf-8' }
+        
+        // Create invalidation
+        const invalidationResponse = await cloudfrontClient.send(
+          new CreateInvalidationCommand({
+            DistributionId: distributionId,
+            InvalidationBatch: {
+              CallerReference: `deploy-${Date.now()}`,
+              Paths: {
+                Quantity: 2,
+                Items: ['/assets/*', '/favicon.ico']
+              }
+            }
+          })
         )
         
-        // Parse the invalidation ID from the result
-        const invalidationData = JSON.parse(invalidationResult)
-        const invalidationId = invalidationData.Invalidation.Id
-        
-        console.log(`Waiting for invalidation ${invalidationId} to complete...`)
-        execSync(
-          `aws cloudfront wait invalidation-completed --distribution-id ${distributionId} --id ${invalidationId}`, 
-          { stdio: 'inherit' }
-        )
-        
-        console.log(`CloudFront invalidation completed successfully`)
+        if (invalidationResponse.Invalidation?.Id) {
+          const invalidationId = invalidationResponse.Invalidation.Id
+          console.log(`Waiting for invalidation ${invalidationId} to complete...`)
+          
+          // Wait for invalidation to complete
+          await waitUntilInvalidationCompleted(
+            { client: cloudfrontClient, maxWaitTime: 300 },
+            { 
+              DistributionId: distributionId,
+              Id: invalidationId
+            }
+          )
+          
+          console.log(`CloudFront invalidation completed successfully`)
+        }
       }
     }
     
     console.log('Deployment completed successfully')
-    return {
-      cloudfrontDomain: cloudfrontOutput?.OutputValue || 'Unknown'
-    }
+    return { cloudfrontDomain }
   } catch (error) {
     console.error('Error during deployment:', error instanceof Error ? error.message : String(error))
     process.exit(1)
@@ -102,13 +169,16 @@ const deploy = (environment: string = 'prod'): DeploymentResult => {
 }
 
 // Helper to get CloudFront distribution ID from domain name
-const getDistributionIdFromDomain = (domain: string): string | null => {
+const getDistributionIdFromDomain = async (domain: string): Promise<string | null> => {
   try {
-    const result = execSync(
-      `aws cloudfront list-distributions --query "DistributionList.Items[?DomainName=='${domain}'].Id" --output text`, 
-      { encoding: 'utf-8' }
+    const response = await cloudfrontClient.send(
+      new ListDistributionsCommand({})
     )
-    return result.trim()
+    
+    const distributions = response.DistributionList?.Items || []
+    const matchingDistribution = distributions.find(dist => dist.DomainName === domain)
+    
+    return matchingDistribution?.Id || null
   } catch (error) {
     console.error('Could not get CloudFront distribution ID:', error instanceof Error ? error.message : String(error))
     return null
@@ -116,7 +186,7 @@ const getDistributionIdFromDomain = (domain: string): string | null => {
 }
 
 // Main execution
-const main = (): void => {
+const main = async (): Promise<void> => {
   // Get environment argument from command line (default to prod)
   const args = process.argv.slice(2)
   const envArg = args.find(arg => arg.startsWith('--env='))
@@ -130,7 +200,7 @@ const main = (): void => {
   }
   
   console.log(`Deploying to ${environment} environment`)
-  const result = deploy(environment)
+  const result = await deploy(environment)
   
   // Print the CloudFront domain name
   if (result?.cloudfrontDomain) {
@@ -139,4 +209,8 @@ const main = (): void => {
   }
 }
 
-main()
+// Execute main function and handle errors
+main().catch((error) => {
+  console.error('Deployment failed:', error instanceof Error ? error.message : String(error))
+  process.exit(1)
+})

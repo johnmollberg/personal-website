@@ -9,11 +9,9 @@
     "dev": "cross-env IS_LOCAL=true NODE_ENV=development vike dev",
     "test": "jest",
     "test:watch": "jest --watch",
-    
     "deploy:dev": "ts-node scripts/deploy.ts --env=dev",
     "deploy:staging": "ts-node scripts/deploy.ts --env=staging",
     "deploy:prod": "ts-node scripts/deploy.ts --env=prod",
-    
     "deploy": "yarn deploy:prod"
   },
   "dependencies": {
@@ -27,6 +25,9 @@
     "web-vitals": "^4.2.4"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudformation": "^3.777.0",
+    "@aws-sdk/client-cloudfront": "^3.777.0",
+    "@aws-sdk/client-s3": "^3.777.0",
     "@eslint/js": "^9.23.0",
     "@jest/globals": "^29.7.0",
     "@statsig/js-client": "^3.15.1",
