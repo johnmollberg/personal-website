@@ -58,7 +58,7 @@ export const handler = async (event: CloudFrontRequestEvent, _context: Context):
       title: 'Personal Website',
       description: 'My personal website'
     },
-    headers
+    headers,
   }
   
   try {

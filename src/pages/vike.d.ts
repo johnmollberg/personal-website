@@ -3,11 +3,12 @@ import type { ClientInitializeResponse } from '@statsig/node'
 
 export type PageContextInit = {
   urlOriginal: string
-  pageProps?: PageProps
+  pageProps: PageProps
   documentProps: {
-    title?: string
-    description?: string
+    title: string
+    description: string
   }
+  headers: Record<string, string>
 }
 declare global {
   namespace Vike {
