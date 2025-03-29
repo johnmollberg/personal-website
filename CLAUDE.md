@@ -16,9 +16,25 @@ This is a personal website built with:
 - **Test**: `yarn test`
 - **Test Watch Mode**: `yarn test:watch`
 - **Single Test**: `yarn test <test-path>`
-- **Deploy Infrastructure**: `yarn deploy`
-- **Deploy Static Assets**: `yarn deploy:static`
-- **Deploy Everything**: `yarn deploy:all`
+
+### Deployment Commands
+#### Development Environment
+- **Deploy Infrastructure**: `yarn deploy:dev`
+- **Deploy Static Assets**: `yarn deploy:static:dev`
+- **Deploy Everything**: `yarn deploy:all:dev`
+- **Invalidate Cache**: `yarn invalidate-cache:dev`
+
+#### Staging Environment
+- **Deploy Infrastructure**: `yarn deploy:staging`
+- **Deploy Static Assets**: `yarn deploy:static:staging`
+- **Deploy Everything**: `yarn deploy:all:staging`
+- **Invalidate Cache**: `yarn invalidate-cache:staging`
+
+#### Production Environment
+- **Deploy Infrastructure**: `yarn deploy:prod` or `yarn deploy`
+- **Deploy Static Assets**: `yarn deploy:static:prod` or `yarn deploy:static`
+- **Deploy Everything**: `yarn deploy:all:prod` or `yarn deploy:all`
+- **Invalidate Cache**: `yarn invalidate-cache:prod` or `yarn invalidate-cache`
 
 ## Code Style Guidelines
 - **TypeScript**: Use TypeScript for all new code with proper type definitions
@@ -44,7 +60,21 @@ Add important context from each Claude session here to ensure continuity between
 - Known issues
 - Current priorities
 
-### 2025-03-29
+### 2025-03-29 (Session 2)
+- Added multi-environment support (dev, staging, prod)
+  - Modified CloudFormation template to include Environment parameter
+  - Added environment-specific resource naming in template.yaml
+  - Added Environment tag to CloudFront distribution for better identification
+  - Updated deploy-static.js to accept environment parameter
+  - Created DRY deployment scripts using helper scripts and environment variables
+  - Implemented consistent naming with personal-website-{env} for all stacks
+  - Created separate CloudFront distributions and S3 buckets for each environment
+  - Maintained backwards compatibility with existing scripts
+  - Added environment-specific cache invalidation commands using CloudFront tags
+  - Updated documentation with new deployment commands
+  - Reduced code duplication by centralizing environment-specific code
+
+### 2025-03-29 (Session 1)
 - Updated ESLint configuration to follow TypeScript-ESLint recommended patterns
   - Added TypeScript-ESLint stylistic rules
   - Fixed server/index.ts syntax error with missing closing parenthesis

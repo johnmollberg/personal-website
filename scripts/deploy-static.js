@@ -3,17 +3,20 @@
 import { execSync } from 'child_process'
 
 // Deploy infrastructure with SAM CLI
-const deploySAM = () => {
+const deploySAM = (environment = 'prod') => {
   try {
-    console.log('Building and deploying infrastructure with SAM CLI')
+    console.log(`Building and deploying infrastructure to ${environment} environment`)
     
-    // Run the SAM deploy command
-    console.log('Deploying SAM template...')
-    execSync('sam deploy --resolve-s3 --stack-name personal-website --capabilities CAPABILITY_IAM --no-fail-on-empty-changeset', 
+    // Create the stack name with environment suffix
+    const stackName = `personal-website-${environment}`
+    
+    // Run the SAM deploy command with environment parameter
+    console.log(`Deploying SAM template to ${stackName}...`)
+    execSync(`sam deploy --resolve-s3 --stack-name ${stackName} --capabilities CAPABILITY_IAM --no-fail-on-empty-changeset --parameter-overrides Environment=${environment}`, 
       { stdio: 'inherit' })
     
     // Get the stack outputs to find our S3 bucket
-    const cloudformationOutput = execSync('aws cloudformation describe-stacks --stack-name personal-website --query "Stacks[0].Outputs" --output json', { encoding: 'utf-8' })
+    const cloudformationOutput = execSync(`aws cloudformation describe-stacks --stack-name ${stackName} --query "Stacks[0].Outputs" --output json`, { encoding: 'utf-8' })
     const outputs = JSON.parse(cloudformationOutput)
     
     // Find S3 bucket name from stack outputs
@@ -62,6 +65,9 @@ const deploySAM = () => {
     }
     
     console.log('Deployment completed successfully')
+    return {
+      cloudfrontDomain: cloudfrontOutput?.OutputValue || 'Unknown'
+    }
   } catch (error) {
     console.error('Error during deployment:', error.message)
     process.exit(1)
@@ -81,4 +87,27 @@ const getDistributionIdFromDomain = (domain) => {
 }
 
 // Main execution
-deploySAM()
+const main = () => {
+  // Get environment argument from command line (default to prod)
+  const args = process.argv.slice(2)
+  const envArg = args.find(arg => arg.startsWith('--env='))
+  const environment = envArg ? envArg.split('=')[1] : 'prod'
+  
+  // Validate environment
+  const validEnvironments = ['dev', 'staging', 'prod']
+  if (!validEnvironments.includes(environment)) {
+    console.error(`Invalid environment "${environment}". Must be one of: ${validEnvironments.join(', ')}`)
+    process.exit(1)
+  }
+  
+  console.log(`Deploying to ${environment} environment`)
+  const result = deploySAM(environment)
+  
+  // Print the CloudFront domain name
+  if (result?.cloudfrontDomain) {
+    console.log(`\n✅ Deployment completed successfully!`)
+    console.log(`📱 ${environment.toUpperCase()} environment URL: https://${result.cloudfrontDomain}\n`)
+  }
+}
+
+main()

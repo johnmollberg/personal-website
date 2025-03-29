@@ -7,6 +7,14 @@ Parameters:
     Type: String
     Description: Timestamp for this deployment (used to generate unique Lambda versions)
     Default: '0000000000'
+  Environment:
+    Type: String
+    Description: Environment to deploy to (dev, staging, prod)
+    Default: 'prod'
+    AllowedValues:
+      - dev
+      - staging
+      - prod
 
 Globals:
   Function:
@@ -21,6 +29,7 @@ Resources:
       CodeUri: ./dist/server
       Handler: index.handler
       Runtime: nodejs22.x  # Using latest Node.js 22.x runtime
+      FunctionName: !Sub "personal-website-${Environment}-ssr"
       Architectures:
         - x86_64
       # Lambda@Edge functions must be deployed to us-east-1
@@ -88,6 +97,7 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
+      BucketName: !Sub "personal-website-logs-${Environment}-${AWS::AccountId}"
       VersioningConfiguration:
         Status: Suspended
       PublicAccessBlockConfiguration:
@@ -130,6 +140,7 @@ Resources:
   StaticAssets:
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: !Sub "personal-website-assets-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -158,6 +169,9 @@ Resources:
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
       DistributionConfig:
         Origins:
           - Id: S3Static

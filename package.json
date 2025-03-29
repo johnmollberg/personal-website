@@ -9,11 +9,31 @@
     "dev": "cross-env IS_LOCAL=true NODE_ENV=development vike dev",
     "test": "jest",
     "test:watch": "jest --watch",
-    "deploy": "yarn build && sam deploy --resolve-s3 --stack-name personal-website --region us-east-1 --capabilities CAPABILITY_IAM --parameter-overrides DeploymentTimestamp=$(date +%s)",
-    "deploy:guided": "yarn build && sam deploy --guided --stack-name personal-website --region us-east-1 --capabilities CAPABILITY_IAM --parameter-overrides DeploymentTimestamp=$(date +%s)",
-    "deploy:static": "node scripts/deploy-static.js",
-    "deploy:all": "yarn deploy && yarn deploy:static",
-    "invalidate-cache": "aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query \"DistributionList.Items[?DomainName=='d3uk1vljw85z1q.cloudfront.net'].Id\" --output text) --paths \"/*\""
+    
+    "_deploy-infra": "yarn build && sam deploy --resolve-s3 --stack-name personal-website-$ENV --region us-east-1 --capabilities CAPABILITY_IAM --parameter-overrides Environment=$ENV DeploymentTimestamp=$(date +%s) --no-fail-on-empty-changeset",
+    "deploy:dev": "ENV=dev yarn _deploy-infra",
+    "deploy:staging": "ENV=staging yarn _deploy-infra",
+    "deploy:prod": "ENV=prod yarn _deploy-infra",
+    
+    "_deploy-static": "node scripts/deploy-static.js --env=$ENV",
+    "deploy:static:dev": "ENV=dev yarn _deploy-static",
+    "deploy:static:staging": "ENV=staging yarn _deploy-static",
+    "deploy:static:prod": "ENV=prod yarn _deploy-static",
+    
+    "_invalidate-cache": "aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query \"DistributionList.Items[?contains(Tags.Items[?Key=='Environment'].Value, '$ENV')].Id\" --output text) --paths \"/*\"",
+    "invalidate-cache:dev": "ENV=dev yarn _invalidate-cache",
+    "invalidate-cache:staging": "ENV=staging yarn _invalidate-cache",
+    "invalidate-cache:prod": "ENV=prod yarn _invalidate-cache",
+    
+    "_deploy-all": "yarn deploy:$ENV && yarn deploy:static:$ENV",
+    "deploy:all:dev": "ENV=dev yarn _deploy-all",
+    "deploy:all:staging": "ENV=staging yarn _deploy-all",
+    "deploy:all:prod": "ENV=prod yarn _deploy-all",
+    
+    "deploy": "yarn deploy:prod",
+    "deploy:static": "yarn deploy:static:prod",
+    "deploy:all": "yarn deploy:all:prod",
+    "invalidate-cache": "yarn invalidate-cache:prod"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.777.0",
