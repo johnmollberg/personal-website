@@ -16,7 +16,6 @@ export default defineConfig(({ mode, isSsrBuild }) => {
   
   // Load env variables
   const envObject = loadEnv(env, 'environment', ['CLIENT_', 'SERVER_'])
-  console.log('env', envObject)
   
   return {
     // Define environment variables
