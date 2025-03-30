@@ -49,23 +49,38 @@ personal-website/
 
 ### Local Development
 ```bash
-yarn dev        # Run the development server with SSR
+yarn dev        # Run the development server with SSR (with DEV title prefix)
 yarn build      # Build the application for production
 yarn preview    # Preview the production build locally
 ```
 
+### Environment-Specific Builds
+```bash
+yarn build:dev      # Build for development environment
+yarn build:staging  # Build for staging environment
+yarn build:prod     # Build for production environment
+```
+
 ### AWS Deployment with SAM
-This project is set up to deploy to AWS using SAM (Serverless Application Model):
+This project is set up to deploy to AWS using SAM (Serverless Application Model) with multi-environment support:
 
-1. **Initial deployment:**
-   ```bash
-   yarn deploy:guided  # Interactive guided deployment 
-   ```
+#### Environment-Specific Deployments
+```bash
+# Development Environment
+yarn deploy:dev       # Deploy to dev environment with DEV title prefix
 
-2. **Subsequent deployments:**
-   ```bash
-   yarn deploy:all     # Build, deploy Lambda function, and upload static assets
-   ```
+# Staging Environment
+yarn deploy:staging   # Deploy to staging environment with STAGING title prefix
+
+# Production Environment
+yarn deploy:prod      # Deploy to production environment
+yarn deploy           # Alias for deploy:prod
+```
+
+The deployment process automatically:
+1. Builds the application with the correct environment settings
+2. Deploys the Lambda function and CloudFront distribution
+3. Uploads static assets to the environment-specific S3 bucket
 
 The deployment creates:
 - Lambda@Edge function for server-side rendering directly at the edge

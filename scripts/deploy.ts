@@ -46,9 +46,10 @@ interface DeploymentResult {
 
 // Build the application using yarn script instead of Vite API
 // This avoids the Vike deprecation warning
-async function buildApplication(): Promise<void> {
-  console.log('Building application...')
-  await execAsyncWithStdio('yarn build')
+async function buildApplication(environment: string): Promise<void> {
+  console.log(`Building application for ${environment} environment...`)
+  // Pass APP_ENV to the build process
+  await execAsyncWithStdio(`APP_ENV=${environment} yarn build`)
   console.log('Build completed successfully')
 }
 
@@ -61,8 +62,8 @@ const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> =
     const stackName = `personal-website-${environment}`
     const timestamp = Math.floor(Date.now() / 1000)
     
-    // Build the application using yarn script 
-    await buildApplication()
+    // Build the application using yarn script with environment
+    await buildApplication(environment)
     
     // Run the SAM deploy command with environment parameter
     // Note: We still use execAsync for SAM CLI as it doesn't have a JavaScript SDK

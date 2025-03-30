@@ -12,9 +12,18 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
     </PageShell>
   )
 
-  const { documentProps } = pageContext
-  const title = documentProps?.title || 'Personal Website'
-  const description = documentProps?.description || 'My personal website'
+  const baseTitle = 'John Mollberg'
+  const env = import.meta.env.VITE_APP_ENV || 'prod'
+  
+  // Set environment-specific title
+  let title = baseTitle
+  if (env === 'staging') {
+    title = `STAGING - ${baseTitle}`
+  } else if (env === 'dev') {
+    title = `DEV - ${baseTitle}`
+  }
+  
+  const description = 'My personal website'
 
   console.log('bootstrapValues', pageContext.data.bootstrapValues)
 

@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "build": "vike build",
+    "build:dev": "APP_ENV=dev vike build",
+    "build:staging": "APP_ENV=staging vike build",
+    "build:prod": "APP_ENV=prod vike build",
     "lint": "eslint .",
-    "dev": "cross-env IS_LOCAL=true NODE_ENV=development vike dev",
+    "dev": "cross-env IS_LOCAL=true NODE_ENV=development APP_ENV=dev vike dev",
     "test": "jest",
     "test:watch": "jest --watch",
     "deploy:dev": "ts-node scripts/deploy.ts --env=dev",

@@ -52,13 +52,10 @@ export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFront
   const stableID = getOrGenerateStableID(request)
   console.log('stableID in handler', stableID)
   
+    
   const pageContextInit: PageContextInit = {
     urlOriginal: uri + queryString,
     pageProps: {},
-    documentProps: {
-      title: 'Personal Website',
-      description: 'My personal website'
-    },
     headers,
   }
   

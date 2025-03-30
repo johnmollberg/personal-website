@@ -60,6 +60,18 @@ Add important context from each Claude session here to ensure continuity between
 - Known issues
 - Current priorities
 
+### 2025-03-29 (Session 3)
+- Added environment-specific document titles
+  - Modified build process to use environment variables (APP_ENV)
+  - Set different title formats based on environment:
+    - Production: "John Mollberg"
+    - Staging: "STAGING - John Mollberg"
+    - Development: "DEV - John Mollberg"
+  - Updated Vite configuration to inject environment variables
+  - Added environment-specific build scripts to package.json
+  - Updated the deploy script to pass APP_ENV during build
+  - Modified both client-side (+onRenderHtml.tsx) and server-side (server/index.ts) rendering
+
 ### 2025-03-29 (Session 2)
 - Added multi-environment support (dev, staging, prod)
   - Modified CloudFormation template to include Environment parameter

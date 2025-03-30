@@ -4,10 +4,6 @@ import type { ClientInitializeResponse } from '@statsig/node'
 export interface PageContextInit {
   urlOriginal: string
   pageProps: PageProps
-  documentProps: {
-    title: string
-    description: string
-  }
   headers: Record<string, string>
 }
 declare global {
