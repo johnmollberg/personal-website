@@ -9,15 +9,21 @@ import path from 'path'
 export default defineConfig(({ mode, isSsrBuild }) => {
   const isProduction = mode === 'production'
   
+  const env = process.env.VITE_APP_ENV
+  if (!env) {
+    throw new Error('VITE_APP_ENV environment variable is not set')
+  }
+  
   // Load env variables
-  const env = loadEnv(mode, process.cwd(), '')
-  const appEnv = env.APP_ENV || (isProduction ? 'prod' : 'dev')
+  const envObject = loadEnv(env, 'environment')
+  console.log('env', envObject)
   
   return {
     // Define environment variables
-    define: {
-      'import.meta.env.VITE_APP_ENV': JSON.stringify(appEnv)
-    },
+    define: Object.entries(envObject).reduce<Record<string, string>>((acc, [key, value]) => {
+      acc[`import.meta.env.${key}`] = JSON.stringify(value)
+      return acc
+    }, {}),
     plugins: [
       react(), 
       vike(),

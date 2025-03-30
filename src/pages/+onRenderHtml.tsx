@@ -5,6 +5,7 @@ import type { OnRenderHtmlAsync } from 'vike/types'
 
 export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
   console.log('server rendering')
+  console.log(import.meta.env)
   const { Page, pageProps } = pageContext
   const pageHtml = renderToString(
     <PageShell pageContext={pageContext}>
@@ -36,7 +37,7 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="${description}" />
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <title>${title}</title>
+        <title>${import.meta.env.VITE_DOCUMENT_TITLE}</title>
       </head>
       <body>
         <div id="root">${dangerouslySkipEscape(pageHtml)}</div>

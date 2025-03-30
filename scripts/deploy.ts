@@ -49,7 +49,7 @@ interface DeploymentResult {
 async function buildApplication(environment: string): Promise<void> {
   console.log(`Building application for ${environment} environment...`)
   // Pass APP_ENV to the build process
-  await execAsyncWithStdio(`APP_ENV=${environment} yarn build`)
+  await execAsyncWithStdio(`VITE_APP_ENV=${environment} yarn build`)
   console.log('Build completed successfully')
 }
 
@@ -189,9 +189,12 @@ const getDistributionIdFromDomain = async (domain: string): Promise<string | nul
 // Main execution
 const main = async (): Promise<void> => {
   // Get environment argument from command line (default to prod)
-  const args = process.argv.slice(2)
-  const envArg = args.find(arg => arg.startsWith('--env='))
-  const environment = envArg ? envArg.split('=')[1] : 'prod'
+  const environment: string | undefined = process.env.VITE_APP_ENV
+
+  if (!environment) {
+    console.error('VITE_APP_ENV environment variable is not set')
+    process.exit(1)
+  }
   
   // Validate environment
   const validEnvironments = ['dev', 'staging', 'prod']

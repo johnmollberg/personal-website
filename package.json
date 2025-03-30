@@ -4,18 +4,24 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "vike build",
-    "build:dev": "APP_ENV=dev vike build",
-    "build:staging": "APP_ENV=staging vike build",
-    "build:prod": "APP_ENV=prod vike build",
+    "start": "cross-env IS_LOCAL=true NODE_ENV=${NODE_ENV:-development} VITE_APP_ENV=${VITE_APP_ENV:-dev} vike dev",
+    "start:dev": "VITE_APP_ENV=dev yarn start",
+    "start:staging": "VITE_APP_ENV=staging yarn start",
+    "start:prod": "VITE_APP_ENV=prod yarn start",
+  
+    "build": "VITE_APP_ENV=${VITE_APP_ENV:-dev} vike build",
+    "build:dev": "VITE_APP_ENV=dev yarn build",
+    "build:staging": "VITE_APP_ENV=staging yarn build",
+    "build:prod": "VITE_APP_ENV=prod yarn build",
+
+    "deploy:dev": "VITE_APP_ENV=dev ts-node scripts/deploy.ts",
+    "deploy:staging": "VITE_APP_ENV=staging ts-node scripts/deploy.ts",
+    "deploy:prod": "VITE_APP_ENV=prod ts-node scripts/deploy.ts",
+    "deploy": "yarn deploy:prod",
+
     "lint": "eslint .",
-    "dev": "cross-env IS_LOCAL=true NODE_ENV=development APP_ENV=dev vike dev",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "deploy:dev": "ts-node scripts/deploy.ts --env=dev",
-    "deploy:staging": "ts-node scripts/deploy.ts --env=staging",
-    "deploy:prod": "ts-node scripts/deploy.ts --env=prod",
-    "deploy": "yarn deploy:prod"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.777.0",
