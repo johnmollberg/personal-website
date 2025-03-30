@@ -22,11 +22,25 @@ import {
 // Convert exec to promise-based for commands we still need to execute
 const execAsync = promisify(exec)
 
-const execAsyncWithStdio = async (command: string) => {
+const execAsyncWithStdio = async (command: string, env?: Record<string, string>) => {
   console.log(`Running: ${command}`)
   return new Promise<void>((resolve, reject) => {
-    const [cmd, ...args] = command.split(' ')
-    const child = spawn(cmd, args, { stdio: 'inherit' })
+    // Split the command but preserve quoted strings
+    const cmdParts = command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || []
+    
+    // Get the base command and args
+    const cmd = cmdParts[0]
+    const args = cmdParts.slice(1)
+    
+    // Create environment by extending process.env
+    const environment = env ? { ...process.env, ...env } : process.env
+    
+    const child = spawn(cmd, args, { 
+      stdio: 'inherit',
+      env: environment,
+      shell: false
+    })
+    
     child.on('close', (code) => {
       if (code === 0) resolve()
       else reject(new Error(`Command failed with code ${code}`))
@@ -48,8 +62,8 @@ interface DeploymentResult {
 // This avoids the Vike deprecation warning
 async function buildApplication(environment: string): Promise<void> {
   console.log(`Building application for ${environment} environment...`)
-  // Pass APP_ENV to the build process
-  await execAsyncWithStdio(`VITE_APP_ENV=${environment} yarn build`)
+  // Pass APP_ENV to the build process through environment variables
+  await execAsyncWithStdio(`yarn build`, { APP_ENV: environment })
   console.log('Build completed successfully')
 }
 
@@ -69,7 +83,7 @@ const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> =
     // Note: We still use execAsync for SAM CLI as it doesn't have a JavaScript SDK
     console.log(`Deploying SAM template to ${stackName}...`)
     
-    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} DeploymentTimestamp=${timestamp} --no-fail-on-empty-changeset`)
+    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} DeploymentTimestamp=${timestamp} AppEnv=${environment} --no-fail-on-empty-changeset`)
     
     // Get the stack outputs to find our S3 bucket
     console.log(`Getting CloudFormation outputs for stack: ${stackName}`)
@@ -189,10 +203,10 @@ const getDistributionIdFromDomain = async (domain: string): Promise<string | nul
 // Main execution
 const main = async (): Promise<void> => {
   // Get environment argument from command line (default to prod)
-  const environment: string | undefined = process.env.VITE_APP_ENV
+  const environment: string | undefined = process.env.CLIENT_APP_ENV
 
   if (!environment) {
-    console.error('VITE_APP_ENV environment variable is not set')
+    console.error('CLIENT_APP_ENV environment variable is not set')
     process.exit(1)
   }
   
