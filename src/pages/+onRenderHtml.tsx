@@ -7,6 +7,9 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
   console.log('server rendering')
   console.log(import.meta.env)
   const { Page, pageProps } = pageContext
+  if (!Page) {
+    throw new Error('Page component is not defined')
+  }
   const pageHtml = renderToString(
     <PageShell pageContext={pageContext}>
       <Page {...pageProps} />

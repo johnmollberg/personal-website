@@ -3,13 +3,13 @@ import reactLogo from '../../assets/react.svg'
 import viteLogo from '../../assets/vite.svg'
 import './App.css'
 import { WebVitals } from '../WebVitals/WebVitals'
-
+import { StatsigProvider } from '../StatsigProvider/StatsigProvider'
 
 export const App = () => {
   const [count, setCount] = useState(0)
 
   return (
-    <>
+    <StatsigProvider>
       <WebVitals />
       <div>
         <a href="https://vite.dev" target="_blank">
@@ -31,7 +31,7 @@ export const App = () => {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
-    </>
+    </StatsigProvider>
   )
 }
 
