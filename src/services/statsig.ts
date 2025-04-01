@@ -16,8 +16,7 @@ const getStatsigSecret = async (): Promise<StatsigSecret> => {
     
     // Get the Statsig secret from Secrets Manager
     // Lambda@Edge doesn't support environment variables, so we need to hardcode the secret name
-    const secretId = 'statsig-credentials'
-    const command = new GetSecretValueCommand({ SecretId: secretId })
+    const command = new GetSecretValueCommand({ SecretId: import.meta.env.SERVER_STATSIG_SECRET_ID })
     
     // Execute the command to get the secret
     const response = await client.send(command)

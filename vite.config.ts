@@ -9,18 +9,18 @@ import path from 'path'
 export default defineConfig(({ mode, isSsrBuild }) => {
   const isProduction = mode === 'production'
   
-  const env = process.env.CLIENT_APP_ENV
+  const env = process.env.PUBLIC_APP_ENV
   if (!env) {
-    throw new Error('CLIENT_APP_ENV environment variable is not set')
+    throw new Error('PUBLIC_APP_ENV environment variable is not set')
   }
   
   // Load env variables
-  const envObject = loadEnv(env, 'environment', ['CLIENT_', 'SERVER_'])
+  const envObject = loadEnv(env, 'environment', ['PUBLIC_', 'SERVER_'])
   
   return {
     // Define environment variables
     define: Object.entries(envObject).reduce<Record<string, string>>((acc, [key, value]) => {
-      if (isSsrBuild || key.startsWith('CLIENT_')) {
+      if (isSsrBuild || key.startsWith('PUBLIC_')) {
         acc[`import.meta.env.${key}`] = JSON.stringify(value)
       }
       return acc

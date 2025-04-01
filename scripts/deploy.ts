@@ -203,10 +203,10 @@ const getDistributionIdFromDomain = async (domain: string): Promise<string | nul
 // Main execution
 const main = async (): Promise<void> => {
   // Get environment argument from command line (default to prod)
-  const environment: string | undefined = process.env.CLIENT_APP_ENV
+  const environment: string | undefined = process.env.PUBLIC_APP_ENV
 
   if (!environment) {
-    console.error('CLIENT_APP_ENV environment variable is not set')
+    console.error('PUBLIC_APP_ENV environment variable is not set')
     process.exit(1)
   }
   
