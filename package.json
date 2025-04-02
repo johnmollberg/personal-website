@@ -11,14 +11,17 @@
     "start:dev": "PUBLIC_APP_ENV=dev yarn start",
     "start:staging": "PUBLIC_APP_ENV=staging yarn start",
     "start:prod": "PUBLIC_APP_ENV=prod yarn start",
+
     "build": "PUBLIC_APP_ENV=${PUBLIC_APP_ENV:-dev} vike build",
     "build:dev": "PUBLIC_APP_ENV=dev yarn build",
     "build:staging": "PUBLIC_APP_ENV=staging yarn build",
     "build:prod": "PUBLIC_APP_ENV=prod yarn build",
-    "deploy:dev": "PUBLIC_APP_ENV=dev tsx scripts/deploy.cts",
-    "deploy:staging": "PUBLIC_APP_ENV=staging tsx scripts/deploy.cts",
-    "deploy:prod": "PUBLIC_APP_ENV=prod tsx scripts/deploy.cts",
-    "deploy": "yarn deploy:prod",
+
+    "deploy": "PUBLIC_APP_ENV=${PUBLIC_APP_ENV:-dev} tsx scripts/deploy.cts",
+    "deploy:dev": "PUBLIC_APP_ENV=dev yarn deploy",
+    "deploy:staging": "PUBLIC_APP_ENV=staging yarn deploy",
+    "deploy:prod": "PUBLIC_APP_ENV=prod yarn deploy",
+
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch"
