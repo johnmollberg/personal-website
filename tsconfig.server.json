@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     "preserveSymlinks": true
   },
-  "ts-node": {
+  "tsx": {
     "transpileOnly": true,
     "compilerOptions": {
       "module": "NodeNext"

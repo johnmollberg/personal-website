@@ -1,9 +1,5 @@
-#!/usr/bin/env node
-
 import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
-import { createReadStream } from 'node:fs'
-import path from 'node:path'
 import { 
   CloudFormationClient, 
   DescribeStacksCommand
@@ -35,12 +31,14 @@ const execAsyncWithStdio = async (command: string, env?: Record<string, string>)
     // Create environment by extending process.env
     const environment = env ? { ...process.env, ...env } : process.env
     
+    // @ts-expect-error
     const child = spawn(cmd, args, { 
       stdio: 'inherit',
       env: environment,
       shell: false
     })
     
+    // @ts-expect-error
     child.on('close', (code) => {
       if (code === 0) resolve()
       else reject(new Error(`Command failed with code ${code}`))
@@ -114,21 +112,11 @@ const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> =
     // A full SDK implementation would require listing all files and uploading each one
     await execAsyncWithStdio(`aws s3 sync ./dist/client/assets s3://${s3BucketName}/assets --cache-control "max-age=31536000,public" --acl public-read`)
     
-    // Upload favicon.ico to S3 bucket root (using SDK)
-    console.log('Copying favicon.ico to S3 bucket root...')
-    const faviconPath = './public/favicon.ico'
-    const faviconStream = createReadStream(faviconPath)
+    // Upload all public directory files to S3 bucket root
+    console.log('Copying all public directory files to S3 bucket root...')
     
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: s3BucketName,
-        Key: 'favicon.ico',
-        Body: faviconStream,
-        CacheControl: 'max-age=86400,public',
-        ACL: 'public-read',
-        ContentType: 'image/x-icon'
-      })
-    )
+    // Using AWS CLI to sync public directory to S3 bucket root
+    await execAsyncWithStdio(`aws s3 sync ./public s3://${s3BucketName} --cache-control "max-age=86400,public" --acl public-read`)
     
     // Invalidate CloudFront cache for assets if needed
     const cloudfrontDomainOutput = outputs.find(output => output.OutputKey === 'CloudFrontDistributionDomainName')
@@ -150,8 +138,8 @@ const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> =
             InvalidationBatch: {
               CallerReference: `deploy-${Date.now()}`,
               Paths: {
-                Quantity: 2,
-                Items: ['/assets/*', '/favicon.ico']
+                Quantity: 3,
+                Items: ['/assets/*', '/favicon.ico', '/*']
               }
             }
           })
