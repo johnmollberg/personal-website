@@ -3,18 +3,13 @@ import reactLogo from '../../assets/react.svg'
 import viteLogo from '../../assets/vite.svg'
 import './App.css'
 import { WebVitals } from '../WebVitals/WebVitals'
-import { StatsigProvider } from '../StatsigProvider/StatsigProvider'
 import { PageContext } from 'vike/types'
 
-interface AppProps {
-  context: PageContext
-}
-
-export const App = ({ context }: AppProps) => {
+export const App = () => {
   const [count, setCount] = useState(0)
 
   return (
-    <StatsigProvider context={context}>
+    <>
       <WebVitals />
       <div>
         <a href="https://vite.dev" target="_blank">
@@ -36,7 +31,7 @@ export const App = ({ context }: AppProps) => {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
-    </StatsigProvider>
+    </>
   )
 }
 

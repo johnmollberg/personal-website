@@ -11,12 +11,10 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
     throw new Error('Page component is not defined')
   }
   const pageHtml = renderToString(
-    <PageShell pageContext={pageContext}>
-      <Page 
-        context={pageContext} 
-        {...pageProps} 
-      />
-    </PageShell>
+    <Page 
+      context={pageContext} 
+      {...pageProps} 
+    />
   )
 
   const baseTitle = 'John Mollberg'

@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 import type { ClientInitializeResponse } from '@statsig/node'
-
+import type { PostMetadata } from '../utils/posts'
 export interface PageContextInit {
   urlOriginal: string
   pageProps: PageProps
@@ -14,6 +14,7 @@ declare global {
       bootstrapValues?: ClientInitializeResponse
       data: {
         bootstrapValues?: ClientInitializeResponse
+        recentPosts?: PostMetadata[]
       }
     }
   }

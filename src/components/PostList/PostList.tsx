@@ -1,6 +1,6 @@
-import React from 'react';
-import { PostMetadata } from '../../utils/posts';
-import './PostList.css';
+import React from 'react'
+import type { PostMetadata } from '../../utils/posts'
+import './PostList.css'
 
 interface PostListProps {
   posts: PostMetadata[];
@@ -24,5 +24,5 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
         ))}
       </ul>
     </div>
-  );
-};
+  )
+}
