@@ -57,6 +57,19 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
                 fs.writeFileSync(serverEntryPath, content)
                 console.log('Added entry.js import to server bundle')
               }
+
+              const postsPath = path.resolve(__dirname, 'src/content/posts')
+              if (fs.existsSync(postsPath)) {
+                const distPostsPath = path.resolve(__dirname, 'dist/server/src/content/posts')
+                if (!fs.existsSync(distPostsPath)) {
+                  fs.mkdirSync(distPostsPath, { recursive: true })
+                }
+                for (const file of fs.readdirSync(postsPath)) {
+                  const filePath = path.resolve(postsPath, file)
+                  const fileContent = fs.readFileSync(filePath, 'utf8')
+                  fs.writeFileSync(path.resolve(distPostsPath, file), fileContent)
+                }
+              }
             }
           }
         }
@@ -80,6 +93,14 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
       external: ['vite'],
       noExternal: true,
     } : undefined,
+    optimizeDeps: {
+      esbuildOptions: {
+        // Node.js global to browser globalThis
+        define: {
+          global: 'globalThis',
+        },
+      },
+    },
     // Server build configuration
     build: isSsrBuild ? {
       ssr: true,

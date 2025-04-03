@@ -92,6 +92,13 @@ Resources:
                   - 'secretsmanager:DescribeSecret'
                 Resource: 
                   - !Sub 'arn:aws:secretsmanager:us-east-1:${AWS::AccountId}:secret:${Environment}/statsig-server-secret-??????'
+              - Effect: Allow
+                Action: 
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                Resource:
+                  - !Sub 'arn:aws:s3:::${StaticAssets}/*'
+                  - !Sub 'arn:aws:s3:::${StaticAssets}'
 
   # S3 bucket for CloudFront access logs
   LoggingBucket:

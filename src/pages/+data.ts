@@ -17,7 +17,8 @@ export const data = async (pageContext: Vike.PageContext) => {
     console.log('bootstrapValues', bootstrapValues)
     
     // Get recent posts for homepage
-    const recentPosts = getAllPosts().slice(0, 3)
+    const allPosts = await getAllPosts()
+    const recentPosts = allPosts.slice(0, 3)
     
     return {
         bootstrapValues,

@@ -164,6 +164,10 @@ const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> =
     // Using AWS CLI to sync public directory to S3 bucket root
     await execAsyncWithStdio(`aws s3 sync ./public s3://${s3BucketName} --cache-control "max-age=86400,public" --acl public-read`)
     
+    // Upload content directory to S3 bucket
+    console.log('Copying content directory to S3 bucket...')
+    await execAsyncWithStdio(`aws s3 sync ./src/content s3://${s3BucketName}/content --cache-control "max-age=3600,public" --acl public-read`)
+    
     // Invalidate CloudFront cache for assets if needed
     const cloudfrontDomainOutput = outputs.find(output => output.OutputKey === 'CloudFrontDistributionDomainName')
     let cloudfrontDomain = 'Unknown'
@@ -184,8 +188,8 @@ const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> =
             InvalidationBatch: {
               CallerReference: `deploy-${Date.now()}`,
               Paths: {
-                Quantity: 3,
-                Items: ['/assets/*', '/favicon.ico', '/*']
+                Quantity: 4,
+                Items: ['/assets/*', '/favicon.ico', '/content/*', '/*']
               }
             }
           })
