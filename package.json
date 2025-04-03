@@ -11,19 +11,15 @@
     "start:dev": "PUBLIC_APP_ENV=dev yarn start",
     "start:staging": "PUBLIC_APP_ENV=staging yarn start",
     "start:prod": "PUBLIC_APP_ENV=prod yarn start",
-
     "build": "PUBLIC_APP_ENV=${PUBLIC_APP_ENV:-dev} vike build",
     "build:dev": "PUBLIC_APP_ENV=dev yarn build",
     "build:staging": "PUBLIC_APP_ENV=staging yarn build",
     "build:prod": "PUBLIC_APP_ENV=prod yarn build",
-
     "deploy": "PUBLIC_APP_ENV=${PUBLIC_APP_ENV:-dev} tsx scripts/deploy.cts",
     "deploy:dev": "PUBLIC_APP_ENV=dev yarn deploy",
     "deploy:staging": "PUBLIC_APP_ENV=staging yarn deploy",
     "deploy:prod": "PUBLIC_APP_ENV=prod yarn deploy",
-
     "create-statsig-secrets": "tsx scripts/create-statsig-secrets.ts",
-
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -33,6 +29,7 @@
     "@statsig/react-bindings": "^3.15.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
     "statsig-node": "^6.3.1",
     "vike": "^0.4.227",
     "vike-react": "^0.6.1",

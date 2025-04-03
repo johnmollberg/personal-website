@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { getClientInitializeResponse } from "../services/statsig"
 import type { StatsigUser } from 'statsig-node'
+import { getAllPosts } from '../utils/posts'
 
 
 export const data = async (pageContext: Vike.PageContext) => {
@@ -14,7 +15,12 @@ export const data = async (pageContext: Vike.PageContext) => {
     } satisfies StatsigUser
     const bootstrapValues = await getClientInitializeResponse(statsigUser)
     console.log('bootstrapValues', bootstrapValues)
+    
+    // Get recent posts for homepage
+    const recentPosts = getAllPosts().slice(0, 3)
+    
     return {
         bootstrapValues,
+        recentPosts,
     }
 }

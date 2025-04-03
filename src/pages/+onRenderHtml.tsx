@@ -12,7 +12,10 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
   }
   const pageHtml = renderToString(
     <PageShell pageContext={pageContext}>
-      <Page context={pageContext} {...pageProps} />
+      <Page 
+        context={pageContext} 
+        {...pageProps} 
+      />
     </PageShell>
   )
 
