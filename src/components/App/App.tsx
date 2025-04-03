@@ -3,7 +3,6 @@ import reactLogo from '../../assets/react.svg'
 import viteLogo from '../../assets/vite.svg'
 import './App.css'
 import { WebVitals } from '../WebVitals/WebVitals'
-import { PageContext } from 'vike/types'
 
 export const App = () => {
   const [count, setCount] = useState(0)

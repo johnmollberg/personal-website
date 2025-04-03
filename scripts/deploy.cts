@@ -1,5 +1,8 @@
 import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
+import { createHash } from 'node:crypto'
+import { readdir, readFile, stat } from 'node:fs/promises'
+import { join } from 'node:path'
 import { 
   CloudFormationClient, 
   DescribeStacksCommand
@@ -12,7 +15,6 @@ import {
 } from '@aws-sdk/client-cloudfront'
 import { 
   S3Client, 
-  PutObjectCommand,
 } from '@aws-sdk/client-s3'
 
 // Convert exec to promise-based for commands we still need to execute
@@ -52,6 +54,46 @@ const cloudformationClient = new CloudFormationClient({ region })
 const cloudfrontClient = new CloudFrontClient({ region })
 const s3Client = new S3Client({ region })
 
+// Calculate SHA256 hash of all files in the Lambda code directory
+async function calculateCodeHash(dirPath: string = './dist/server'): Promise<string> {
+  const files = await getAllFiles(dirPath);
+  const fileContents = await Promise.all(
+    files.map(async (file) => {
+      const content = await readFile(file);
+      return { file, content };
+    })
+  );
+
+  // Sort files by path for consistent hashing
+  fileContents.sort((a, b) => a.file.localeCompare(b.file));
+
+  const hash = createHash('sha256');
+  for (const { file, content } of fileContents) {
+    hash.update(`${file}:${content.length}:`);
+    hash.update(content);
+  }
+
+  return hash.digest('hex');
+}
+
+// Recursively get all files in a directory
+async function getAllFiles(dirPath: string, allFiles: string[] = []): Promise<string[]> {
+  const files = await readdir(dirPath);
+
+  for (const file of files) {
+    const filePath = join(dirPath, file);
+    const stats = await stat(filePath);
+
+    if (stats.isDirectory()) {
+      await getAllFiles(filePath, allFiles);
+    } else {
+      allFiles.push(filePath);
+    }
+  }
+
+  return allFiles;
+}
+
 interface DeploymentResult {
   cloudfrontDomain: string;
 }
@@ -72,16 +114,20 @@ const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> =
     
     // Create the stack name with environment suffix
     const stackName = `personal-website-${environment}`
-    const timestamp = Math.floor(Date.now() / 1000)
     
     // Build the application using yarn script with environment
     await buildApplication(environment)
+    
+    // Calculate the code hash for Lambda function
+    console.log('Calculating Lambda code hash...')
+    const codeHash = await calculateCodeHash('./dist/server')
+    console.log(`Lambda code hash: ${codeHash}`)
     
     // Run the SAM deploy command with environment parameter
     // Note: We still use execAsync for SAM CLI as it doesn't have a JavaScript SDK
     console.log(`Deploying SAM template to ${stackName}...`)
     
-    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} DeploymentTimestamp=${timestamp} AppEnv=${environment} --no-fail-on-empty-changeset`)
+    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} CodeHash=${codeHash} --no-fail-on-empty-changeset`)
     
     // Get the stack outputs to find our S3 bucket
     console.log(`Getting CloudFormation outputs for stack: ${stackName}`)
