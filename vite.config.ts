@@ -6,7 +6,7 @@ import fs from 'fs'
 import path from 'path'
 
 // https://vite.dev/config/
-export default defineConfig(({ mode, isSsrBuild }) => {
+export default defineConfig(({ mode, isSsrBuild, command }) => {
   const isProduction = mode === 'production'
   
   const env = process.env.PUBLIC_APP_ENV
@@ -16,11 +16,20 @@ export default defineConfig(({ mode, isSsrBuild }) => {
   
   // Load env variables
   const envObject = loadEnv(env, 'environment', ['PUBLIC_', 'SERVER_'])
+  console.debug('envObject', envObject)
   
   return {
     // Define environment variables
     define: Object.entries(envObject).reduce<Record<string, string>>((acc, [key, value]) => {
-      if (isSsrBuild || key.startsWith('PUBLIC_')) {
+      if (
+        isSsrBuild ||
+        key.startsWith('PUBLIC_') ||
+        // TODO: Remove this once we have a better way to handle the environment variables
+        // this line is needed to prevent the environment variables from being removed from
+        // the server bundle when running `vike dev`. A side effect of this is that the
+        // secret variables are available in the client bundle when running `vike dev`.
+        command === 'serve'
+      ) {
         acc[`import.meta.env.${key}`] = JSON.stringify(value)
       }
       return acc

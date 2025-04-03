@@ -22,6 +22,8 @@
     "deploy:staging": "PUBLIC_APP_ENV=staging yarn deploy",
     "deploy:prod": "PUBLIC_APP_ENV=prod yarn deploy",
 
+    "create-statsig-secrets": "tsx scripts/create-statsig-secrets.ts",
+
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch"

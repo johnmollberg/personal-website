@@ -4,12 +4,17 @@ import viteLogo from '../../assets/vite.svg'
 import './App.css'
 import { WebVitals } from '../WebVitals/WebVitals'
 import { StatsigProvider } from '../StatsigProvider/StatsigProvider'
+import { PageContext } from 'vike/types'
 
-export const App = () => {
+interface AppProps {
+  context: PageContext
+}
+
+export const App = ({ context }: AppProps) => {
   const [count, setCount] = useState(0)
 
   return (
-    <StatsigProvider>
+    <StatsigProvider context={context}>
       <WebVitals />
       <div>
         <a href="https://vite.dev" target="_blank">

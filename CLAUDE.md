@@ -60,6 +60,34 @@ Add important context from each Claude session here to ensure continuity between
 - Known issues
 - Current priorities
 
+### 2025-04-02 (Session 2)
+- Added CloudFormation-managed secrets for AWS Secrets Manager
+  - Created StatsigSecret resource in template.yaml
+  - Environment-specific secret naming with `statsig-credentials-${Environment}`
+  - Added IAM permissions to access the secret
+  - Set up template for optional automatic secret rotation (commented out)
+  - Added secret outputs to CloudFormation stack
+  - Added application and environment tags to secrets for better management
+  - Created a TypeScript script (scripts/create-statsig-secrets.ts) to manage secrets:
+    - Takes API keys from environment variables (STATSIG_DEV_API_KEY, etc.)
+    - Creates all environment secrets (dev, staging, prod) in a single execution
+    - Handles both creation and updating of existing secrets
+
+### 2025-04-02 (Session 1)
+- Added markdown blog functionality
+  - Installed react-markdown for rendering markdown content
+  - Created content directory for storing markdown posts with frontmatter
+  - Implemented post loading and parsing utilities in src/utils/posts.ts
+  - Added PostContent component for rendering individual posts
+  - Added PostList component for displaying post listings
+  - Created blog post listing page at /posts route
+  - Created dynamic post pages with route parameters at /posts/:slug
+  - Styled posts with responsive layouts
+  - Added recent posts section to homepage
+  - Implemented server-side rendering of posts with Vike's data loading
+  - Created example posts to demonstrate functionality
+  - Used Vike's route parameters to support dynamic post URLs
+
 ### 2025-03-29 (Session 3)
 - Added environment-specific document titles
   - Modified build process to use environment variables (APP_ENV)

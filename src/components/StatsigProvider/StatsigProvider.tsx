@@ -1,18 +1,21 @@
 import type { ReactNode } from 'react'
 import { StatsigProvider as ReactStatsigProvider, useClientBootstrapInit } from '@statsig/react-bindings'
-import { usePageContext } from 'vike-react/usePageContext'
+import { PageContext } from 'vike/types'
+
 
 interface StatsigProviderProps {
   children: ReactNode
+  context: PageContext
 }
 
 export const StatsigProvider = ({
+  context,
   children,
 }: StatsigProviderProps) => {
-  const context = usePageContext()
+  console.log('StatsigProvider context:', context)
   const user = context?.data?.bootstrapValues?.user
   const bootstrapValues = context?.data?.bootstrapValues
-  console.log('bootstrapValues', bootstrapValues)
+  console.log('bootstrapValues in StatsigProvider:', bootstrapValues)
   const client = useClientBootstrapInit(
     'client-QdNLe7NYw1V3E6cuR7AseBeaHZSppsFLjXckQE8Dtp9',
     user,
