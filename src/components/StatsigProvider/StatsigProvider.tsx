@@ -12,7 +12,6 @@ export const StatsigProvider = ({
   context,
   children,
 }: StatsigProviderProps) => {
-  console.log('StatsigProvider context:', context)
   const user = context?.data?.bootstrapValues?.user
   const bootstrapValues = context?.data?.bootstrapValues
   console.log('bootstrapValues in StatsigProvider:', bootstrapValues)

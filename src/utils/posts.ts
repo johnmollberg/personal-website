@@ -32,11 +32,11 @@ function getS3BucketName(): string {
   }
   
   // Get environment from Vite
-  const env = import.meta.env.APP_ENV || 'prod';
+  const env = import.meta.env.PUBLIC_APP_ENV || 'prod';
   
   // In production, this would be replaced with account ID at build time
   // For now, we'll use a placeholder that will be filled during deployment
-  const accountId = import.meta.env.AWS_ACCOUNT_ID || '';
+  const accountId = import.meta.env.SERVER_AWS_ACCOUNT_ID || '';
   
   s3BucketName = `personal-website-assets-${env}-${accountId}`;
   return s3BucketName;
