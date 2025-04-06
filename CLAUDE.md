@@ -67,7 +67,20 @@ Add important context from each Claude session here to ensure continuity between
 - Known issues
 - Current priorities
 
-### 2025-04-05
+### 2025-04-05 (Session 2)
+- Refactored code to better leverage Vike hooks
+  - Moved Statsig server SDK initialization to root +guard.ts hook
+  - Created proper type definitions for each page's data
+  - Added GuardData interface for shared data across all pages
+  - Created specific data types for each page (HomePageData, PostsPageData, PostPageData)
+  - Refactored each page's +data.ts to only fetch what it needs
+  - Updated StatsigProvider to support both new guardData and backward compatibility
+  - Added proper type assertions in page components
+  - Improved code organization with clear separation of concerns
+  - Made bootstrap process more efficient by only initializing Statsig once
+  - Improved type safety with more specific page context typing
+
+### 2025-04-05 (Session 1)
 - Added proper routes for blog content
   - Created `/posts` route with PostList component to display all blog posts
   - Created `/posts/[slug]` dynamic route to display individual posts

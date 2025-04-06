@@ -1,24 +1,35 @@
 import type { JSX } from 'react'
 import type { ClientInitializeResponse } from '@statsig/node'
-import type { PostMetadata } from '../utils/posts'
-export interface PageContextInit {
-  urlOriginal: string
-  pageProps: PageProps
-  headers: Record<string, string>
-  userTimeZone?: string
+import type { Post, PostMetadata } from '../utils/posts'
+
+// Define base context type to be shared across all pages
+export interface GuardData {
+  bootstrapValues: ClientInitializeResponse | null
+  userTimeZone: string
 }
+
+// Define specific data types for each page
+export interface HomePageData extends GuardData {
+  recentPosts: PostMetadata[]
+}
+
+export interface PostsPageData extends GuardData {
+  posts: PostMetadata[]
+}
+
+export interface PostPageData extends GuardData {
+  post: Post
+}
+
 declare global {
   namespace Vike {
-    interface PageContext extends PageContextInit {
-      Page: (pageProps: PageProps) => JSX.Element
+    interface PageContext {
+      Page: () => JSX.Element
       headers?: Record<string, string>
-      bootstrapValues?: ClientInitializeResponse
-      userTimeZone?: string
-      data: {
-        bootstrapValues?: ClientInitializeResponse
-        recentPosts?: PostMetadata[]
-        userTimeZone?: string
-      }
+      // Data from the guard hook
+      guardData?: GuardData
+      // Data from the data hook (this will be different for each page)
+      data?: GuardData | HomePageData | PostsPageData | PostPageData
     }
   }
 }

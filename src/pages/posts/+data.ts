@@ -1,23 +1,18 @@
-import { randomUUID } from 'node:crypto'
-import { getClientInitializeResponse } from "../../services/statsig"
-import type { StatsigUser } from 'statsig-node'
 import { getAllPosts } from '../../utils/posts'
+import type { PostsPageData } from '../vike'
 
-export const data = async (pageContext: Vike.PageContext) => {
-    const stableID = pageContext.headers?.['cookie']?.split('; ').find(row => row.startsWith('stableID='))?.split('=')[1] || randomUUID()
-    const statsigUser = {
-        customIDs: {
-            stableID,
-        },
-    } satisfies StatsigUser
-    const bootstrapValues = await getClientInitializeResponse(statsigUser)
+export const data = async (pageContext: Vike.PageContext): Promise<PostsPageData> => {
+    // Make sure guardData exists
+    if (!pageContext.guardData) {
+        throw new Error('guardData is not available. The guard hook might not have been executed.')
+    }
     
     // Get all posts for the posts page
     const posts = await getAllPosts()
     
+    // Return page-specific data combined with guard data
     return {
-        bootstrapValues,
+        ...pageContext.guardData,
         posts,
-        userTimeZone: pageContext.userTimeZone || 'UTC',
     }
 }

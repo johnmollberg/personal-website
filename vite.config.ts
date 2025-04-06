@@ -32,7 +32,7 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
       }
       return acc
     }, {}),
-    
+
     plugins: [
       vike(),
       // Plugin to exclude test files in development

@@ -4,6 +4,6 @@ import react from 'vike-react/config'
 export default {
     ssr: true,
     // Make sure data is included in passToClient to ensure Statsig data is available on client-side
-    passToClient: ['pageProps', 'urlPathname', 'routeParams', 'data'],
+    passToClient: ['data'],
     extends: [react],
 } satisfies Config

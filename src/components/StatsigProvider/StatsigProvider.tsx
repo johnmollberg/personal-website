@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { StatsigProvider as ReactStatsigProvider, useClientBootstrapInit } from '@statsig/react-bindings'
 import type { PageContext } from 'vike/types'
 
-
 interface StatsigProviderProps {
   children: ReactNode
   context: PageContext
@@ -12,14 +11,18 @@ export const StatsigProvider = ({
   context,
   children,
 }: StatsigProviderProps) => {
-  const user = context?.data?.bootstrapValues?.user
-  const bootstrapValues = context?.data?.bootstrapValues
+  // Use guardData if available, fallback to data for backwards compatibility
+  const bootstrapValues = context?.guardData?.bootstrapValues || context?.data?.bootstrapValues
+  const user = bootstrapValues?.user
+  
   console.log('bootstrapValues in StatsigProvider:', bootstrapValues)
+  
   const client = useClientBootstrapInit(
     'client-QdNLe7NYw1V3E6cuR7AseBeaHZSppsFLjXckQE8Dtp9',
     user,
     JSON.stringify(bootstrapValues),
   )
+  
   return (
     <ReactStatsigProvider client={client}>
       {children}

@@ -4,6 +4,8 @@ import type { PageContext } from 'vike/types'
 import './+Page.css'
 import { PageShell } from '../components/page/PageShell'
 import { formatDateWithTimeZone } from '../utils/posts'
+import type { HomePageData } from './vike'
+
 interface PageProps {
   context?: PageContext;
 }
@@ -12,20 +14,24 @@ export const Page = ({ context }: PageProps) => {
   // Always use context if provided, otherwise get from hook (SSR/SSG compatibility)
   const pageContext = usePageContext()
   const contextToUse = context || pageContext
-  const posts = contextToUse.data?.recentPosts
-  const userTimeZone = contextToUse.data?.userTimeZone || 'UTC'
+
+  console.log('contextToUse', contextToUse.headers)
+  
+  // Type assertion for this specific page
+  const data = contextToUse.data as HomePageData
+  const recentPosts = data?.recentPosts
+  const userTimeZone = data?.userTimeZone
   
   return (
-
     <PageShell pageContext={contextToUse}>
       <div className="home-page">
         <App />
         
         <section className="recent-posts">
           <h2>Recent Blog Posts</h2>
-          {posts && posts.length > 0 ? (
+          {recentPosts && recentPosts.length > 0 ? (
             <ul className="post-preview-list">
-              {posts.map(post => (
+              {recentPosts.map(post => (
                 <li key={post.slug}>
                   <a href={`/posts/${post.slug}`}>
                     <h3>{post.title}</h3>

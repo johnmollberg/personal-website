@@ -5,7 +5,7 @@ import type { OnRenderHtmlAsync } from 'vike/types'
 export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
   console.log('server rendering')
   console.log(import.meta.env)
-  const { Page, pageProps } = pageContext
+  const { Page } = pageContext
   if (!Page) {
     throw new Error('Page component is not defined')
   }
@@ -16,17 +16,11 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
   }
 
   const pageHtml = renderToString(
-    <Page 
-      context={pageContext} 
-      {...pageProps} 
-    />
+    <Page context={pageContext} />
   )
 
   const description = 'My personal website'
 
-  console.log('bootstrapValues', pageContext.data.bootstrapValues)
-
-  // Get stable ID from context or generate a new one
   return {
     documentHtml: escapeInject`<!DOCTYPE html>
     <html lang="en">

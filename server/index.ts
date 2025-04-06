@@ -1,7 +1,7 @@
 import { renderPage } from 'vike/server'
 import type { CloudFrontRequest, CloudFrontRequestEvent, CloudFrontRequestResult, CloudFrontResultResponse } from 'aws-lambda'
 import { randomUUID } from 'node:crypto'
-import type { PageContextInit } from '../src/pages/vike.d.ts'
+import type { ParamsFromCloudfront } from '../src/pages/vike.d.ts'
 
 const formatResponse = (response: Partial<CloudFrontResultResponse>) => {
   const status = response.status || '500'
@@ -54,13 +54,8 @@ export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFront
   
     
   // Extract timezone information from CloudFront headers
-  const timezone = request.headers['cloudfront-viewer-time-zone']?.[0]?.value || 'UTC'
-  
-  const pageContextInit: PageContextInit = {
-    urlOriginal: uri + queryString,
-    pageProps: {},
+  const pageContextInit: ParamsFromCloudfront = {
     headers,
-    userTimeZone: timezone,
   }
   
   try {
@@ -68,7 +63,10 @@ export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFront
     console.log('pageContextInit keys:', Object.keys(pageContextInit))
     
     // Ensure we're passing the statsigUser property correctly
-    const pageContext = await renderPage(pageContextInit)
+    const pageContext = await renderPage({
+      urlOriginal: uri + queryString,
+      ...pageContextInit,
+    })
     
     const { httpResponse } = pageContext
     
