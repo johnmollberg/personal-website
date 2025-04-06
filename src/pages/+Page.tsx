@@ -15,8 +15,6 @@ export const Page = ({ context }: PageProps) => {
   const pageContext = usePageContext()
   const contextToUse = context || pageContext
 
-  console.log('contextToUse', contextToUse.headers)
-  
   // Type assertion for this specific page
   const data = contextToUse.data as HomePageData
   const recentPosts = data?.recentPosts
