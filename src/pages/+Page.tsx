@@ -1,14 +1,9 @@
 import { usePageContext } from 'vike-react/usePageContext'
 import { App } from '../components/App/App'
-import type { PageContext } from 'vike/types'
 import './+Page.css'
 import { PageShell } from '../components/page/PageShell'
 import { formatDateWithTimeZone } from '../utils/posts'
-import type { HomePageData } from './vike'
-
-interface PageProps {
-  context?: PageContext;
-}
+import type { HomePageData, PageProps } from '../vike'
 
 export const Page = ({ context }: PageProps) => {
   // Always use context if provided, otherwise get from hook (SSR/SSG compatibility)

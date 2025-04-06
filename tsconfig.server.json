@@ -21,5 +21,8 @@
       "module": "NodeNext"
     }
   },
-  "include": ["server/**/*.ts"]
+  "include": [
+    "server/**/*.ts",
+    "src/**/*.d.ts"
+  ]
 }

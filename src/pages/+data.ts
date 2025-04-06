@@ -1,7 +1,8 @@
 import { getAllPosts } from '../utils/posts'
-import type { HomePageData } from './vike'
+import type { HomePageData } from '../vike'
+import type { PageContextServer } from 'vike/types'
 
-export const data = async (pageContext: Vike.PageContext): Promise<HomePageData> => {
+export const data = async (pageContext: PageContextServer): Promise<HomePageData> => {
     console.log('in root +data.ts')
     
     // Make sure guardData exists

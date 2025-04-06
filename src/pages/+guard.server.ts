@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { getClientInitializeResponse } from "../services/statsig"
-import type { GuardData } from './vike'
+import type { GuardData } from '../vike'
+import type { PageContextServer } from 'vike/types'
 
-export const guard = async (pageContext: Vike.PageContext) => {
+export const guard = async (pageContext: PageContextServer) => {
     console.log('in guard')
 
     console.log('pageContext', pageContext)
@@ -17,9 +18,10 @@ export const guard = async (pageContext: Vike.PageContext) => {
 
     // Extract stable ID from cookies or generate a new one
     const stableID = pageContext.headers?.['cookie']?.split('; ').find(row => row.startsWith('stableID='))?.split('=')[1] || randomUUID()
-    const userTimeZone = pageContext.headers?.['cloudfront-viewer-time-zone']?.[0] || 'UTC'
+    const userTimeZone = pageContext.headers?.['cloudfront-viewer-time-zone'] || 'UTC'
     console.log('stableID in guard', stableID)
     console.log('userTimeZone in guard', userTimeZone)
+    
     // Initialize Statsig and get bootstrap values
     const bootstrapValues = await getClientInitializeResponse({
         customIDs: {

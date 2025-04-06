@@ -1,9 +1,10 @@
 import { createContext, useContext } from 'react'
+import type { PageContextClient } from 'vike/types'
 
-const Context = createContext<Vike.PageContext>(undefined as unknown as Vike.PageContext)
+const Context = createContext<PageContextClient>(undefined as unknown as PageContextClient)
 
 export const PageContextProvider = ({ pageContext, children }: {
-  pageContext: Vike.PageContext
+  pageContext: PageContextClient
   children: React.ReactNode
 }) => {
   return <Context.Provider value={pageContext}>{children}</Context.Provider>

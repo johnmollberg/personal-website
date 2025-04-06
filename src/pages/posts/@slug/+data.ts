@@ -1,7 +1,8 @@
 import { getPostBySlug } from '../../../utils/posts'
-import type { PostPageData } from '../../vike'
+import type { PostPageData } from '../../../vike'
+import type { PageContextServer } from 'vike/types'
 
-export const data = async (pageContext: Vike.PageContext & { routeParams: Record<string, string> }): Promise<PostPageData> => {
+export const data = async (pageContext: PageContextServer & { routeParams: Record<string, string> }): Promise<PostPageData> => {
     // Make sure guardData exists
     if (!pageContext.guardData) {
         throw new Error('guardData is not available. The guard hook might not have been executed.')

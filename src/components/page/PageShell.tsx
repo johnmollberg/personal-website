@@ -2,14 +2,14 @@ import type { ReactNode } from 'react'
 import { PageContextProvider } from './usePageContext'
 import './PageShell.css'
 import { StatsigProvider } from '../StatsigProvider/StatsigProvider'
-import type { PageContext } from 'vike/types'
+import type { PageContextClient, PageContextServer } from 'vike/types'
 
 export const PageShell = ({ children, pageContext }: {
   children: ReactNode
-  pageContext: PageContext
+  pageContext: PageContextClient | PageContextServer
 }) => {
   return (
-    <PageContextProvider pageContext={pageContext}>
+    <PageContextProvider pageContext={pageContext as PageContextClient}>
       <StatsigProvider context={pageContext}>
         <div className="page-layout">
           <header className="main-header">

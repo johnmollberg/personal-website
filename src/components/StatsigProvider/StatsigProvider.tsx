@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { StatsigProvider as ReactStatsigProvider, useClientBootstrapInit } from '@statsig/react-bindings'
-import type { PageContext } from 'vike/types'
+import type { PageContextClient, PageContextServer } from 'vike/types'
 
 interface StatsigProviderProps {
   children: ReactNode
-  context: PageContext
+  context: PageContextClient | PageContextServer
 }
 
 export const StatsigProvider = ({

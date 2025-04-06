@@ -1,12 +1,7 @@
 import { usePageContext } from 'vike-react/usePageContext'
-import type { PageContext } from 'vike/types'
 import { PageShell } from '../../components/page/PageShell'
 import { PostList } from '../../components/PostList'
-import type { PostsPageData } from '../vike'
-
-interface PageProps {
-  context?: PageContext;
-}
+import type { PostsPageData, PageProps } from '../../vike'
 
 export const Page = ({ context }: PageProps) => {
   // Always use context if provided, otherwise get from hook (SSR/SSG compatibility)

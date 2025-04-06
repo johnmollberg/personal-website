@@ -1,8 +1,8 @@
 import { renderToString } from 'react-dom/server'
 import { escapeInject, dangerouslySkipEscape } from 'vike/server'
-import type { OnRenderHtmlAsync } from 'vike/types'
+import type { OnRenderHtmlAsync, PageContextServer } from 'vike/types'
 
-export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
+export const onRenderHtml: OnRenderHtmlAsync = async (pageContext: PageContextServer) => {
   console.log('server rendering')
   console.log(import.meta.env)
   const { Page } = pageContext
