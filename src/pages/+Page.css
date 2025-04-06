@@ -5,7 +5,7 @@
 }
 
 .recent-posts {
-  margin-top: 3rem;
+  margin-top: 2rem;
   padding: 2rem;
   background-color: #f9f9f9;
   border-radius: 8px;
@@ -60,24 +60,19 @@
 .post-preview-list p {
   color: #555;
   font-size: 0.95rem;
-  line-height: 1.5;
 }
 
-.view-all {
+.view-all-link {
+  display: block;
   margin-top: 2rem;
   text-align: center;
-}
-
-.view-all a {
-  display: inline-block;
   color: #0066cc;
   font-weight: 500;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.5rem;
   transition: background-color 0.2s;
 }
 
-.view-all a:hover {
+.view-all-link:hover {
   background-color: rgba(0, 102, 204, 0.1);
+  border-radius: 4px;
 }

@@ -12,6 +12,9 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext: PageContextSe
 
   if (import.meta.env.DEV) {
     console.log('DEV')
+    if (!pageContext.headers) {
+      pageContext.headers = {}
+    }
     pageContext.headers.cookie = 'stableID=123'
   }
 

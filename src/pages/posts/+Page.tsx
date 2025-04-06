@@ -18,7 +18,7 @@ export const Page = ({ context }: PageProps) => {
         {posts ? (
           <PostList posts={posts} />
         ) : (
-          <div className="loading">Loading posts...</div>
+          <p className="loading">Loading posts...</p>
         )}
       </div>
     </PageShell>

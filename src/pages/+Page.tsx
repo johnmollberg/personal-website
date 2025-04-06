@@ -1,9 +1,9 @@
 import { usePageContext } from 'vike-react/usePageContext'
-import { App } from '../components/App/App'
 import './+Page.css'
 import { PageShell } from '../components/page/PageShell'
 import { formatDateWithTimeZone } from '../utils/posts'
 import type { HomePageData, PageProps } from '../vike'
+import { WebVitals } from '../components/WebVitals/WebVitals'
 
 export const Page = ({ context }: PageProps) => {
   // Always use context if provided, otherwise get from hook (SSR/SSG compatibility)
@@ -18,8 +18,13 @@ export const Page = ({ context }: PageProps) => {
   return (
     <PageShell pageContext={contextToUse}>
       <div className="home-page">
-        <App />
-        
+        <div className="welcome-section">
+          <WebVitals />
+          <h1>Welcome to My Personal Website</h1>
+          <p className="intro-text">
+            This is where I share my thoughts, projects, and experiences.
+          </p>
+        </div>
         <section className="recent-posts">
           <h2>Recent Blog Posts</h2>
           {recentPosts && recentPosts.length > 0 ? (
@@ -37,9 +42,7 @@ export const Page = ({ context }: PageProps) => {
           ) : (
             <p>No posts yet. Check back soon!</p>
           )}
-          <div className="view-all">
-            <a href="/posts">View all posts →</a>
-          </div>
+          <a href="/posts" className="view-all-link">View all posts →</a>
         </section>
       </div>
     </PageShell>

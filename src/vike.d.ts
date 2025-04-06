@@ -36,8 +36,6 @@ interface PageContextShared {
 }
 
 // Define types that the server adds to PageContext which will be available
-
-// Define types that the server adds to PageContext which will be available
 // when renderPage() returns
 export interface PageContextUserAdded {
   guardData: GuardData

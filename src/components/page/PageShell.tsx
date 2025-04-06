@@ -14,19 +14,18 @@ export const PageShell = ({ children, pageContext }: {
         <div className="page-layout">
           <header className="main-header">
             <nav>
-            <a href="/">Home</a>
-            <a href="/posts">Blog</a>
-          </nav>
-        </header>
-        <main>
-          {children}
-        </main>
-        <footer className="main-footer">
-          <p>© {new Date().getFullYear()} John Mollberg. All rights reserved.</p>
-        </footer>
-      </div>
+              <a href="/">Home</a>
+              <a href="/posts">Blog</a>
+            </nav>
+          </header>
+          <main>
+            {children}
+          </main>
+          <footer className="main-footer">
+            © {new Date().getFullYear()} John Mollberg
+          </footer>
+        </div>
       </StatsigProvider>
-      </PageContextProvider>
-    
+    </PageContextProvider>
   )
 }
