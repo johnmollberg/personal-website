@@ -5,6 +5,7 @@ export interface PageContextInit {
   urlOriginal: string
   pageProps: PageProps
   headers: Record<string, string>
+  userTimeZone?: string
 }
 declare global {
   namespace Vike {
@@ -12,9 +13,11 @@ declare global {
       Page: (pageProps: PageProps) => JSX.Element
       headers?: Record<string, string>
       bootstrapValues?: ClientInitializeResponse
+      userTimeZone?: string
       data: {
         bootstrapValues?: ClientInitializeResponse
         recentPosts?: PostMetadata[]
+        userTimeZone?: string
       }
     }
   }

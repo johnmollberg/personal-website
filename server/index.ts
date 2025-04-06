@@ -53,10 +53,14 @@ export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFront
   console.log('stableID in handler', stableID)
   
     
+  // Extract timezone information from CloudFront headers
+  const timezone = request.headers['cloudfront-viewer-time-zone']?.[0]?.value || 'UTC'
+  
   const pageContextInit: PageContextInit = {
     urlOriginal: uri + queryString,
     pageProps: {},
     headers,
+    userTimeZone: timezone,
   }
   
   try {

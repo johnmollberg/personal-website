@@ -55,7 +55,7 @@ const cloudfrontClient = new CloudFrontClient({ region })
 const s3Client = new S3Client({ region })
 
 // Calculate SHA256 hash of all files in the Lambda code directory
-async function calculateCodeHash(dirPath: string = './dist/server'): Promise<string> {
+async function calculateCodeHash(dirPath = './dist/server'): Promise<string> {
   const files = await getAllFiles(dirPath);
   const fileContents = await Promise.all(
     files.map(async (file) => {
@@ -108,7 +108,7 @@ async function buildApplication(environment: string): Promise<void> {
 }
 
 // Deploy infrastructure and static assets
-const deploy = async (environment: string = 'prod'): Promise<DeploymentResult> => {
+const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
   try {
     console.log(`Starting deployment to ${environment} environment`)
     

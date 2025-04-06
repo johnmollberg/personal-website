@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { PageContextProvider } from './usePageContext'
 import './PageShell.css'
 import { StatsigProvider } from '../StatsigProvider/StatsigProvider'
-import { PageContext } from 'vike/types'
+import type { PageContext } from 'vike/types'
 
 export const PageShell = ({ children, pageContext }: {
   children: ReactNode

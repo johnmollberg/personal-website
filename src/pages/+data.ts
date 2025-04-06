@@ -23,5 +23,6 @@ export const data = async (pageContext: Vike.PageContext) => {
     return {
         bootstrapValues,
         recentPosts,
+        userTimeZone: pageContext.userTimeZone || 'UTC',
     }
 }

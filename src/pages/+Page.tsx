@@ -3,6 +3,7 @@ import { App } from '../components/App/App'
 import type { PageContext } from 'vike/types'
 import './+Page.css'
 import { PageShell } from '../components/page/PageShell'
+import { formatDateWithTimeZone } from '../utils/posts'
 interface PageProps {
   context?: PageContext;
 }
@@ -12,6 +13,7 @@ export const Page = ({ context }: PageProps) => {
   const pageContext = usePageContext()
   const contextToUse = context || pageContext
   const posts = contextToUse.data?.recentPosts
+  const userTimeZone = contextToUse.data?.userTimeZone || 'UTC'
   
   return (
 
@@ -27,7 +29,7 @@ export const Page = ({ context }: PageProps) => {
                 <li key={post.slug}>
                   <a href={`/posts/${post.slug}`}>
                     <h3>{post.title}</h3>
-                    <time dateTime={post.date}>{new Date(post.date).toLocaleDateString()}</time>
+                    <time dateTime={post.date}>{formatDateWithTimeZone(post.date, userTimeZone)}</time>
                     <p>{post.description}</p>
                   </a>
                 </li>
