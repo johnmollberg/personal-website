@@ -14,6 +14,10 @@ dist-ssr
 *.local
 install-state.gz
 
+# Test coverage
+coverage
+.vitest
+
 # AWS SAM
 .aws-sam
 samconfig.toml

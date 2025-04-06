@@ -1,14 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, expect, test, jest } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { WebVitals } from './WebVitals'
 
 // Mock web-vitals library
-jest.mock('web-vitals', () => ({
-  onCLS: jest.fn(),
-  onINP: jest.fn(),
-  onLCP: jest.fn(),
-  onFCP: jest.fn(),
-  onTTFB: jest.fn(),
+vi.mock('web-vitals', () => ({
+  onCLS: vi.fn(),
+  onINP: vi.fn(),
+  onLCP: vi.fn(),
+  onFCP: vi.fn(),
+  onTTFB: vi.fn(),
   CLSThresholds: [0.1, 0.25],
   INPThresholds: [200, 500],
   LCPThresholds: [2500, 4000],
@@ -48,7 +48,7 @@ describe('WebVitals component', () => {
   
   test('metrics are clickable and open documentation links', () => {
     // Mock window.open
-    window.open = jest.fn()
+    window.open = vi.fn()
     
     render(<WebVitals />)
     

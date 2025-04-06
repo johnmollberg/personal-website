@@ -10,7 +10,7 @@ interface PostListProps {
 
 export const PostList: React.FC<PostListProps> = ({ posts }) => {
   const pageContext = usePageContext()
-  const userTimeZone = pageContext.data?.userTimeZone || 'UTC'
+  const userTimeZone = pageContext?.data?.userTimeZone || 'UTC'
   
   return (
     <div className="post-list">

@@ -9,13 +9,20 @@ This is a personal website built with:
 
 ## Commands
 - **Install**: `yarn install`
-- **Dev Server**: `yarn dev` 
+- **Dev Server**: `yarn start` 
 - **Build**: `yarn build`
-- **Preview Build**: `yarn preview`
 - **Lint**: `yarn lint`
 - **Test**: `yarn test`
 - **Test Watch Mode**: `yarn test:watch`
 - **Single Test**: `yarn test <test-path>`
+
+### Environment-Specific Commands
+- **Dev Server (Development)**: `yarn start:dev`
+- **Dev Server (Staging)**: `yarn start:staging`
+- **Dev Server (Production)**: `yarn start:prod`
+- **Build (Development)**: `yarn build:dev`
+- **Build (Staging)**: `yarn build:staging`
+- **Build (Production)**: `yarn build:prod`
 
 ### Deployment Commands
 #### Development Environment
@@ -59,6 +66,21 @@ Add important context from each Claude session here to ensure continuity between
 - Changes implemented
 - Known issues
 - Current priorities
+
+### 2025-04-05
+- Added proper routes for blog content
+  - Created `/posts` route with PostList component to display all blog posts
+  - Created `/posts/[slug]` dynamic route to display individual posts
+  - Implemented data fetching for both list and individual post pages
+  - Added error handling for missing posts
+  - Fixed command references in CLAUDE.md (updated yarn dev → yarn start)
+  - Implemented CSS styles for the posts page
+  - Enhanced PostContent component with proper metadata display
+  - Added comprehensive test coverage for new pages and components
+  - Migrated from Jest to Vitest for better Vite integration
+  - Fixed the "View all posts" link on homepage
+  - Added null-checking for page context to prevent errors
+  - Added ts-node as a development dependency
 
 ### 2025-04-02 (Session 2)
 - Added CloudFormation-managed secrets for AWS Secrets Manager

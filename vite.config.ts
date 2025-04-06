@@ -34,9 +34,26 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
       }
       return acc
     }, {}),
+    
     plugins: [
       react(), 
       vike(),
+      // Plugin to exclude test files in development
+      {
+        name: 'exclude-test-files',
+        configureServer(server) {
+          return () => {
+            server.middlewares.use((req, res, next) => {
+              if (req.url?.includes('.test.') || req.url?.includes('.spec.')) {
+                res.statusCode = 404;
+                res.end('Not found');
+                return;
+              }
+              next();
+            });
+          };
+        }
+      },
       {
         name: 'add-entry-import',
         closeBundle: {
@@ -90,7 +107,11 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
     },
     ssr: isProduction ? {
       // Bundle all dependencies for Lambda environment
-      external: ['vite'],
+      external: [
+        'vite',
+        /\.test\.(ts|tsx)$/,
+        /\.spec\.(ts|tsx)$/,
+      ],
       noExternal: true,
     } : undefined,
     optimizeDeps: {
@@ -114,7 +135,10 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
           entryFileNames: '[name].js'
         },
         preserveEntrySignatures: 'exports-only',
-        external: [],
+        external: [
+          /\.test\.(ts|tsx)$/,
+          /\.spec\.(ts|tsx)$/,
+        ],
         // Make sure vike modules are bundled
         makeAbsoluteExternalsRelative: false,
       }

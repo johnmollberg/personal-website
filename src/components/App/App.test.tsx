@@ -1,9 +1,13 @@
 import { render, screen } from '@testing-library/react'
-import { describe, test, jest } from '@jest/globals'
+import { describe, test, expect, vi } from 'vitest'
 
 // Mock the SVG imports
-jest.mock('../../assets/react.svg', () => 'react-logo')
-jest.mock('../../assets/vite.svg', () => 'vite-logo')
+vi.mock('../../assets/react.svg', () => ({
+  default: 'react-logo'
+}))
+vi.mock('../../assets/vite.svg', () => ({
+  default: 'vite-logo'
+}))
 
 import {App} from './App'
 
