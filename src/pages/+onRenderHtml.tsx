@@ -9,6 +9,12 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
   if (!Page) {
     throw new Error('Page component is not defined')
   }
+
+  if (import.meta.env.DEV) {
+    console.log('DEV')
+    pageContext.headers.cookie = 'stableID=123'
+  }
+
   const pageHtml = renderToString(
     <Page 
       context={pageContext} 

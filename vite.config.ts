@@ -1,5 +1,4 @@
 import { defineConfig, loadEnv } from 'vite'
-import react from '@vitejs/plugin-react-swc'
 import vike from 'vike/plugin'
 import { resolve } from 'path'
 import fs from 'fs'
@@ -15,15 +14,14 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
   }
   
   // Load env variables
-  const envObject = loadEnv(env, 'environment', ['PUBLIC_ENV', 'SERVER_ENV__'])
-  console.debug('envObject', envObject)
+  const envObject = loadEnv(env, 'environment', ['PUBLIC_ENV__', 'SERVER_ENV__'])
   
   return {
     // Define environment variables
     define: Object.entries(envObject).reduce<Record<string, string>>((acc, [key, value]) => {
       if (
         isSsrBuild ||
-        key.startsWith('PUBLIC_ENV') ||
+        key.startsWith('PUBLIC_ENV__') ||
         // TODO: Remove this once we have a better way to handle the environment variables
         // this line is needed to prevent the environment variables from being removed from
         // the server bundle when running `vike dev`. A side effect of this is that the
@@ -36,7 +34,6 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
     }, {}),
     
     plugins: [
-      react(), 
       vike(),
       // Plugin to exclude test files in development
       {

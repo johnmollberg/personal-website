@@ -5,6 +5,7 @@ import { getAllPosts } from '../utils/posts'
 
 
 export const data = async (pageContext: Vike.PageContext) => {
+    console.log('in root +data.ts')
     console.log('pageContext', Object.keys(pageContext))
     const stableID = pageContext.headers?.['cookie']?.split('; ').find(row => row.startsWith('stableID='))?.split('=')[1] || randomUUID()
     console.log('stableID in data', stableID)

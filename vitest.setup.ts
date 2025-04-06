@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 // Mock import.meta.env for tests
 vi.mock('import.meta.env', () => ({
