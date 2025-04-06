@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, test, expect, vi } from 'vitest'
+import { describe, test, vi } from 'vitest'
 
 // Mock the SVG imports
 vi.mock('../../assets/react.svg', () => ({

@@ -1,19 +1,28 @@
 import { render, screen } from '@testing-library/react'
-import { describe, test, expect, vi } from 'vitest'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { PostList } from './PostList'
 import type { PostMetadata } from '../../utils/posts'
 
-// Mock the usePageContext hook
+// Define mocks using vi.hoisted to ensure proper hoisting
+const mockUsePageContext = vi.hoisted(() => vi.fn())
+const mockFormatDateWithTimeZone = vi.hoisted(() => vi.fn())
+
+// Mock dependencies
 vi.mock('vike-react/usePageContext', () => ({
-  usePageContext: vi.fn().mockReturnValue({
-    data: { userTimeZone: 'America/New_York' }
-  })
+  usePageContext: mockUsePageContext
 }))
 
-// Mock the formatDateWithTimeZone function
 vi.mock('../../utils/posts', () => ({
-  formatDateWithTimeZone: vi.fn((date) => `Formatted: ${date}`)
+  formatDateWithTimeZone: mockFormatDateWithTimeZone
 }))
+
+// Reset mocks before each test
+beforeEach(() => {
+  mockUsePageContext.mockReset().mockReturnValue({
+    data: { userTimeZone: 'America/New_York' }
+  })
+  mockFormatDateWithTimeZone.mockReset().mockImplementation((date) => `Formatted: ${date}`)
+})
 
 describe('PostList component', () => {
   const mockPosts: PostMetadata[] = [
@@ -69,8 +78,7 @@ describe('PostList component', () => {
 
   test('uses default timezone when context is not available', () => {
     // Override the mock to return undefined data
-    const { usePageContext } = vi.importMock('vike-react/usePageContext')
-    usePageContext.mockReturnValueOnce({})
+    mockUsePageContext.mockReturnValueOnce({})
     
     render(<PostList posts={mockPosts} />)
     
@@ -78,7 +86,6 @@ describe('PostList component', () => {
     expect(screen.getByText('Blog Posts')).toBeInTheDocument()
     
     // formatDateWithTimeZone should be called with default 'UTC' timezone
-    const { formatDateWithTimeZone } = vi.importMock('../../utils/posts')
-    expect(formatDateWithTimeZone).toHaveBeenCalledWith('2025-04-01', 'UTC')
+    expect(mockFormatDateWithTimeZone).toHaveBeenCalledWith('2025-04-01', 'UTC')
   })
 })

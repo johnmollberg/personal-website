@@ -45,13 +45,13 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
           return () => {
             server.middlewares.use((req, res, next) => {
               if (req.url?.includes('.test.') || req.url?.includes('.spec.')) {
-                res.statusCode = 404;
-                res.end('Not found');
-                return;
+                res.statusCode = 404
+                res.end('Not found')
+                return
               }
-              next();
-            });
-          };
+              next()
+            })
+          }
         }
       },
       {
