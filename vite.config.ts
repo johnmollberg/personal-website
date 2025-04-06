@@ -9,13 +9,13 @@ import path from 'path'
 export default defineConfig(({ mode, isSsrBuild, command }) => {
   const isProduction = mode === 'production'
   
-  const env = process.env.PUBLIC_APP_ENV
+  const env = process.env.PUBLIC_ENV__APP_ENV
   if (!env) {
-    throw new Error('PUBLIC_APP_ENV environment variable is not set')
+    throw new Error('PUBLIC_ENV__APP_ENV environment variable is not set')
   }
   
   // Load env variables
-  const envObject = loadEnv(env, 'environment', ['PUBLIC_', 'SERVER_'])
+  const envObject = loadEnv(env, 'environment', ['PUBLIC_ENV', 'SERVER_ENV__'])
   console.debug('envObject', envObject)
   
   return {
@@ -23,7 +23,7 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
     define: Object.entries(envObject).reduce<Record<string, string>>((acc, [key, value]) => {
       if (
         isSsrBuild ||
-        key.startsWith('PUBLIC_') ||
+        key.startsWith('PUBLIC_ENV') ||
         // TODO: Remove this once we have a better way to handle the environment variables
         // this line is needed to prevent the environment variables from being removed from
         // the server bundle when running `vike dev`. A side effect of this is that the

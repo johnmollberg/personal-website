@@ -16,17 +16,6 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
     />
   )
 
-  const baseTitle = 'John Mollberg'
-  const env = import.meta.env.PUBLIC_APP_ENV || 'prod'
-  
-  // Set environment-specific title
-  let title = baseTitle
-  if (env === 'staging') {
-    title = `STAGING - ${baseTitle}`
-  } else if (env === 'dev') {
-    title = `DEV - ${baseTitle}`
-  }
-  
   const description = 'My personal website'
 
   console.log('bootstrapValues', pageContext.data.bootstrapValues)
@@ -40,7 +29,7 @@ export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="${description}" />
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <title>${import.meta.env.PUBLIC_DOCUMENT_TITLE}</title>
+        <title>${import.meta.env.PUBLIC_ENV__DOCUMENT_TITLE}</title>
       </head>
       <body>
         <div id="root">${dangerouslySkipEscape(pageHtml)}</div>

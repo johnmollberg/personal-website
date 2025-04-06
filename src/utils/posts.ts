@@ -1,5 +1,4 @@
-import fs from 'node:fs'
-import path from 'node:path'
+/* eslint-disable @typescript-eslint/no-require-imports */
 import AWS from 'aws-sdk'
 
 export interface PostMetadata {
@@ -17,7 +16,14 @@ export interface Post extends PostMetadata {
 const isServerless = import.meta.env.MODE === 'production'
 
 // Local file system path for development
-const postsDirectory = path.join(process.cwd(), 'src/content/posts')
+let postsDirectory = ''
+
+// Import node modules only on server side
+if (typeof process !== 'undefined' && !isServerless) {
+  // Dynamic imports to avoid browser compatibility issues
+  const path = require('node:path')
+  postsDirectory = path.join(process.cwd(), 'src/content/posts')
+}
 
 // S3 client for serverless environment
 const s3 = new AWS.S3({ region: 'us-east-1' })
@@ -32,11 +38,11 @@ function getS3BucketName(): string {
   }
   
   // Get environment from Vite
-  const env = import.meta.env.PUBLIC_APP_ENV || 'prod'
+  const env = import.meta.env.PUBLIC_ENV__APP_ENV || 'prod'
   
   // In production, this would be replaced with account ID at build time
   // For now, we'll use a placeholder that will be filled during deployment
-  const accountId = import.meta.env.SERVER_AWS_ACCOUNT_ID || ''
+  const accountId = import.meta.env.SERVER_ENV__AWS_ACCOUNT_ID || ''
   
   s3BucketName = `personal-website-assets-${env}-${accountId}`
   return s3BucketName
@@ -103,9 +109,11 @@ export async function getPostSlugs(): Promise<string[]> {
         })
     } else {
       // In development, read from local filesystem
+      // Use require here to avoid browser issues with Node.js modules
+      const fs = require('node:fs')
       return fs.readdirSync(postsDirectory)
-        .filter(file => file.endsWith('.md'))
-        .map(file => file.replace(/\.md$/, ''))
+        .filter((file: string) => file.endsWith('.md'))
+        .map((file: string) => file.replace(/\.md$/, ''))
     }
   } catch (error) {
     console.error('Error reading post directory:', error)
@@ -131,6 +139,9 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       return parsePostContent(slug, fileContents)
     } else {
       // In development, read from local filesystem
+      // Use require here to avoid browser issues with Node.js modules
+      const fs = require('node:fs')
+      const path = require('node:path')
       const fullPath = path.join(postsDirectory, `${slug}.md`)
       const fileContents = fs.readFileSync(fullPath, 'utf8')
       

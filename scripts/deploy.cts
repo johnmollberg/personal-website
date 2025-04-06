@@ -1,5 +1,4 @@
-import { exec, spawn } from 'node:child_process'
-import { promisify } from 'node:util'
+import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -13,12 +12,6 @@ import {
   CreateInvalidationCommand,
   waitUntilInvalidationCompleted
 } from '@aws-sdk/client-cloudfront'
-import { 
-  S3Client, 
-} from '@aws-sdk/client-s3'
-
-// Convert exec to promise-based for commands we still need to execute
-const execAsync = promisify(exec)
 
 const execAsyncWithStdio = async (command: string, env?: Record<string, string>) => {
   console.log(`Running: ${command}`)
@@ -27,20 +20,18 @@ const execAsyncWithStdio = async (command: string, env?: Record<string, string>)
     const cmdParts = command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || []
     
     // Get the base command and args
-    const cmd = cmdParts[0]
+    const cmd = cmdParts[0] || ''
     const args = cmdParts.slice(1)
     
     // Create environment by extending process.env
     const environment = env ? { ...process.env, ...env } : process.env
     
-    // @ts-expect-error
     const child = spawn(cmd, args, { 
       stdio: 'inherit',
       env: environment,
       shell: false
     })
     
-    // @ts-expect-error
     child.on('close', (code) => {
       if (code === 0) resolve()
       else reject(new Error(`Command failed with code ${code}`))
@@ -52,7 +43,6 @@ const execAsyncWithStdio = async (command: string, env?: Record<string, string>)
 const region = 'us-east-1'
 const cloudformationClient = new CloudFormationClient({ region })
 const cloudfrontClient = new CloudFrontClient({ region })
-const s3Client = new S3Client({ region })
 
 // Calculate SHA256 hash of all files in the Lambda code directory
 async function calculateCodeHash(dirPath = './dist/server'): Promise<string> {
@@ -241,10 +231,10 @@ const getDistributionIdFromDomain = async (domain: string): Promise<string | nul
 // Main execution
 const main = async (): Promise<void> => {
   // Get environment argument from command line (default to prod)
-  const environment: string | undefined = process.env.PUBLIC_APP_ENV
+  const environment: string | undefined = process.env.PUBLIC_ENV__APP_ENV
 
   if (!environment) {
-    console.error('PUBLIC_APP_ENV environment variable is not set')
+    console.error('PUBLIC_ENV__APP_ENV environment variable is not set')
     process.exit(1)
   }
   

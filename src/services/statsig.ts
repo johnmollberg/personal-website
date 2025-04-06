@@ -14,10 +14,10 @@ const getStatsigSecret = async (): Promise<StatsigSecret> => {
       region: 'us-east-1',
     })
     
-    console.debug('SERVER_STATSIG_SECRET_ID', import.meta.env.SERVER_STATSIG_SECRET_ID)
+    console.debug('SERVER_ENV__STATSIG_SECRET_ID', import.meta.env.SERVER_ENV__STATSIG_SECRET_ID)
     // Get the Statsig secret from Secrets Manager
     // Lambda@Edge doesn't support environment variables, so we need to hardcode the secret name
-    const command = new GetSecretValueCommand({ SecretId: import.meta.env.SERVER_STATSIG_SECRET_ID })
+    const command = new GetSecretValueCommand({ SecretId: import.meta.env.SERVER_ENV__STATSIG_SECRET_ID })
     
     // Execute the command to get the secret
     const response = await client.send(command)
