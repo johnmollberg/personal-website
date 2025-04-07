@@ -1,7 +1,7 @@
 import React from 'react'
 import type { PostMetadata } from '../../utils/posts'
 import { formatDateWithTimeZone } from '../../utils/posts'
-import './PostList.css'
+import './PostList.scss'
 import { usePageContext } from 'vike-react/usePageContext'
 
 interface PostListProps {

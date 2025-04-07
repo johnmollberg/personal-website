@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { PageContextProvider } from './usePageContext'
-import './PageShell.css'
+import './PageShell.scss'
 import { StatsigProvider } from '../StatsigProvider/StatsigProvider'
 import type { PageContextClient, PageContextServer } from 'vike/types'
 

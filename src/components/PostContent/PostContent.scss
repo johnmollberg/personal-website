@@ -1,0 +1,78 @@
+@use '../../scss/variables' as *;
+@use '../../scss/mixins' as *;
+
+.post-content {
+  @include container;
+  line-height: $line-height-base;
+
+  header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  time {
+    display: block;
+    color: $text-light;
+    margin-bottom: 15px;
+    font-style: italic;
+  }
+
+  h1 {
+    font-size: $font-size-h1;
+    margin-bottom: 1.5rem;
+    color: $text-color;
+  }
+
+  h2 {
+    font-size: $font-size-h2;
+    margin: 2rem 0 1rem;
+    color: $text-medium;
+  }
+
+  p {
+    margin-bottom: 1.2rem;
+  }
+
+  ul, ol {
+    margin-left: 2rem;
+    margin-bottom: 1.2rem;
+  }
+
+  li {
+    margin-bottom: $spacing-small;
+  }
+
+  pre {
+    @include code-block;
+    
+    code {
+      padding: 0;
+      background-color: transparent;
+    }
+  }
+
+  code {
+    @include inline-code;
+  }
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    @include transition;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.post-description {
+  font-size: $font-size-large;
+  color: $text-medium;
+  max-width: $max-width-narrow;
+  margin: 0 auto 20px;
+}
+
+.post-body {
+  margin-top: 40px;
+}

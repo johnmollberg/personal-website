@@ -32,6 +32,15 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
       }
       return acc
     }, {}),
+    
+    css: {
+      preprocessorOptions: {
+        scss: {
+          // You can add global SCSS variables here if needed
+          // additionalData: `$primary-color: #ff0000;`
+        }
+      }
+    },
 
     plugins: [
       vike(),

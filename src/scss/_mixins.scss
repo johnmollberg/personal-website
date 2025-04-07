@@ -1,0 +1,27 @@
+// Mixins for reuse
+@use 'variables' as *;
+
+@mixin container {
+  max-width: $max-width;
+  margin: 0 auto;
+  padding: $spacing-large;
+}
+
+@mixin transition($property: all, $duration: 0.3s, $timing: ease) {
+  transition: $property $duration $timing;
+}
+
+@mixin code-block {
+  background-color: $background-light;
+  padding: $spacing-medium;
+  border-radius: $border-radius;
+  overflow-x: auto;
+  margin-bottom: 1.2rem;
+}
+
+@mixin inline-code {
+  font-family: monospace;
+  background-color: $background-light;
+  padding: 0.2rem 0.4rem;
+  border-radius: $border-radius-small;
+}

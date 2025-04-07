@@ -10,7 +10,7 @@ import {
   FCPThresholds,
   TTFBThresholds
 } from 'web-vitals'
-import './WebVitals.css'
+import './WebVitals.scss'
 
 interface Vitals {
   cls: number | null

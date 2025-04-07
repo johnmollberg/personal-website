@@ -1,0 +1,44 @@
+@forward '../../scss/base';
+@use '../../scss/variables' as *;
+@use '../../scss/mixins' as *;
+
+.page-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  background-color: #333;
+  color: white;
+  padding: 1rem 2rem;
+  
+  nav {
+    display: flex;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  a {
+    color: white;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+main {
+  flex: 1;
+  padding: 2rem 0;
+}
+
+.main-footer {
+  background-color: $background-light;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: $text-light;
+}

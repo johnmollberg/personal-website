@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
-import './PostContent.css'
+import './PostContent.scss'
 import type { Post } from '../../utils/posts'
 import { formatDateWithTimeZone } from '../../utils/posts'
 import { usePageContext } from 'vike-react/usePageContext'
