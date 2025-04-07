@@ -1,0 +1,78 @@
+.home-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.recent-posts {
+  margin-top: 2rem;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+}
+
+.post-preview-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+
+  li {
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  a {
+    display: block;
+    padding: 1.5rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  time {
+    display: block;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  p {
+    color: #555;
+    font-size: 0.95rem;
+  }
+}
+
+.view-all-link {
+  display: block;
+  margin-top: 2rem;
+  text-align: center;
+  color: #0066cc;
+  font-weight: 500;
+  padding: 0.5rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 102, 204, 0.1);
+    border-radius: 4px;
+  }
+}

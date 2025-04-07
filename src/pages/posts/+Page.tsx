@@ -3,6 +3,8 @@ import { PageShell } from '../../components/page/PageShell'
 import { PostList } from '../../components/PostList'
 import type { PostsPageData, PageProps } from '../../vike'
 
+import './+Page.scss'
+
 export const Page = ({ context }: PageProps) => {
   // Always use context if provided, otherwise get from hook (SSR/SSG compatibility)
   const pageContext = usePageContext()

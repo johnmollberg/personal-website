@@ -1,5 +1,5 @@
 import { usePageContext } from 'vike-react/usePageContext'
-import './+Page.css'
+import './+Page.scss'
 import { PageShell } from '../components/page/PageShell'
 import { formatDateWithTimeZone } from '../utils/posts'
 import type { HomePageData, PageProps } from '../vike'

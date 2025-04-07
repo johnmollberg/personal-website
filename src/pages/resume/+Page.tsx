@@ -1,7 +1,7 @@
 import { usePageContext } from 'vike-react/usePageContext'
 import { PageShell } from '../../components/page/PageShell'
 import type { PageProps } from '../../vike'
-import './+Page.css'
+import './+Page.scss'
 
 export const Page = ({ context }: PageProps) => {
   // Always use context if provided, otherwise get from hook (SSR/SSG compatibility)
@@ -63,7 +63,7 @@ export const Page = ({ context }: PageProps) => {
         <section className="resume-section">
           <h2>Skills</h2>
           <div className="skills-container">
-            <div className="skill-category">
+            <div className="skill-category skill-category-languages">
               <h3>Languages</h3>
               <ul className="skill-list">
                 <li>TypeScript</li>
@@ -77,7 +77,7 @@ export const Page = ({ context }: PageProps) => {
               </ul>
             </div>
             
-            <div className="skill-category">
+            <div className="skill-category skill-category-frontend">
               <h3>Frontend</h3>
               <ul className="skill-list">
                 <li>React</li>
@@ -98,7 +98,7 @@ export const Page = ({ context }: PageProps) => {
               </ul>
             </div>
             
-            <div className="skill-category">
+            <div className="skill-category skill-category-backend">
               <h3>Backend</h3>
               <ul className="skill-list">
                 <li>Node.js</li>
@@ -118,7 +118,7 @@ export const Page = ({ context }: PageProps) => {
               </ul>
             </div>
             
-            <div className="skill-category">
+            <div className="skill-category skill-category-tools">
               <h3>Tools</h3>
               <ul className="skill-list">
                 <li>ChatGPT</li>

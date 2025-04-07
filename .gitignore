@@ -13,6 +13,7 @@ dist
 dist-ssr
 *.local
 install-state.gz
+.eslintcache
 
 # Test coverage
 coverage

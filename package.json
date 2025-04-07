@@ -20,7 +20,7 @@
     "deploy:staging": "PUBLIC_ENV__APP_ENV=staging yarn deploy",
     "deploy:prod": "PUBLIC_ENV__APP_ENV=prod yarn deploy",
     "create-statsig-secrets": "tsx scripts/create-statsig-secrets.ts",
-    "lint": "eslint .",
+    "lint": "eslint . --fix --cache",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
