@@ -42,7 +42,7 @@ function getS3BucketName(): string {
   
   // In production, this would be replaced with account ID at build time
   // For now, we'll use a placeholder that will be filled during deployment
-  const accountId = import.meta.env.SERVER_ENV__AWS_ACCOUNT_ID || ''
+  const accountId = import.meta.env.PUBLIC_ENV__AWS_ACCOUNT_ID || ''
   
   s3BucketName = `personal-website-assets-${env}-${accountId}`
   return s3BucketName

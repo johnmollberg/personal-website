@@ -15,6 +15,14 @@ Parameters:
       - dev
       - staging
       - prod
+  SiteDomain:
+    Type: String
+    Description: Custom domain for the website (e.g., example.com)
+    Default: 'johnmollberg.com'
+  HostedZoneId:
+    Type: String
+    Description: Route53 Hosted Zone ID
+    Default: 'Z2P8S248LOC4KP'
 
 Globals:
   Function:
@@ -244,8 +252,12 @@ Resources:
         DefaultRootObject: ""
         PriceClass: PriceClass_100
         HttpVersion: http2
+        Aliases:
+          - !Ref SiteDomain
         ViewerCertificate:
-          CloudFrontDefaultCertificate: true
+          AcmCertificateArn: !Ref SiteCertificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
@@ -260,6 +272,35 @@ Resources:
       FunctionName: !Ref PersonalWebsiteFunction
       Description: !Sub "Version for Lambda@Edge in ${Environment} environment - CodeHash: ${CodeHash}"
       # The Code Hash in the description ensures new versions are only created when the code changes
+      
+  # ACM Certificate with automatic DNS validation
+  SiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref SiteDomain
+      SubjectAlternativeNames:
+        - !Ref SiteDomain  # Include both apex and www domains if needed
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref SiteDomain
+          HostedZoneId: !Ref HostedZoneId
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Name
+          Value: !Sub "${SiteDomain} Certificate"
+        
+  # Route 53 record to point domain to CloudFront
+  Route53CloudFrontRecord:
+    Type: AWS::Route53::RecordSet
+    DependsOn: CloudFrontDistribution
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref SiteDomain
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront's hosted zone ID (constant value)
 
 
 Outputs:
@@ -275,3 +316,9 @@ Outputs:
   StaticAssetsS3BucketName:
     Description: "S3 Bucket for Static Assets"
     Value: !Ref StaticAssets
+  SiteDomainName:
+    Description: "Custom Site Domain"
+    Value: !Ref SiteDomain
+  CertificateARN:
+    Description: "ACM Certificate ARN"
+    Value: !Ref SiteCertificate

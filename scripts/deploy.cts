@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import * as dotenv from 'dotenv'
 import { 
   CloudFormationClient, 
   DescribeStacksCommand
@@ -12,6 +13,28 @@ import {
   CreateInvalidationCommand,
   waitUntilInvalidationCompleted
 } from '@aws-sdk/client-cloudfront'
+
+// Load environment variables based on environment
+const loadEnvVariables = (environment: string) => {
+  // First load the common .env file
+  const commonEnvPath = resolve(process.cwd(), 'environment', '.env')
+  const commonEnv = dotenv.config({ path: commonEnvPath })
+  
+  // Then load the environment-specific .env file
+  const envPath = resolve(process.cwd(), 'environment', `.env.${environment}`)
+  const envResult = dotenv.config({ path: envPath, override: true })
+  
+  if (envResult.error) {
+    throw new Error(`Error loading environment file for ${environment}: ${envResult.error.message}`)
+  }
+  
+  // Set the PUBLIC_ENV__APP_ENV variable if not already set
+  if (!process.env.PUBLIC_ENV__APP_ENV) {
+    process.env.PUBLIC_ENV__APP_ENV = environment
+  }
+  
+  console.log(`Loaded environment variables for ${environment} environment`)
+}
 
 const execAsyncWithStdio = async (command: string, env?: Record<string, string>) => {
   console.log(`Running: ${command}`)
@@ -86,6 +109,7 @@ async function getAllFiles(dirPath: string, allFiles: string[] = []): Promise<st
 
 interface DeploymentResult {
   cloudfrontDomain: string;
+  siteDomain: string;
 }
 
 // Build the application using yarn script instead of Vite API
@@ -93,7 +117,7 @@ interface DeploymentResult {
 async function buildApplication(environment: string): Promise<void> {
   console.log(`Building application for ${environment} environment...`)
   // Pass APP_ENV to the build process through environment variables
-  await execAsyncWithStdio(`yarn build`, { APP_ENV: environment })
+  await execAsyncWithStdio(`yarn build`, { PUBLIC_ENV__APP_ENV: environment })
   console.log('Build completed successfully')
 }
 
@@ -101,6 +125,15 @@ async function buildApplication(environment: string): Promise<void> {
 const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
   try {
     console.log(`Starting deployment to ${environment} environment`)
+    
+    // Load environment variables for the specified environment
+    loadEnvVariables(environment)
+    
+    // Get site domain from environment variables
+    const siteDomain = process.env.PUBLIC_ENV__SITE_DOMAIN
+    if (!siteDomain) {
+      throw new Error(`PUBLIC_ENV__SITE_DOMAIN is not defined in environment/${environment}.env`)
+    }
     
     // Create the stack name with environment suffix
     const stackName = `personal-website-${environment}`
@@ -113,11 +146,16 @@ const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
     const codeHash = await calculateCodeHash('./dist/server')
     console.log(`Lambda code hash: ${codeHash}`)
     
-    // Run the SAM deploy command with environment parameter
-    // Note: We still use execAsync for SAM CLI as it doesn't have a JavaScript SDK
+    // Run the SAM deploy command with environment and domain parameters
     console.log(`Deploying SAM template to ${stackName}...`)
     
-    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} CodeHash=${codeHash} --no-fail-on-empty-changeset`)
+    // Get hosted zone ID from environment variables
+    const hostedZoneId = process.env.SERVER_ENV__HOSTED_ZONE_ID
+    if (!hostedZoneId) {
+      throw new Error(`SERVER_ENV__HOSTED_ZONE_ID is not defined in environment/.env`)
+    }
+    
+    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} CodeHash=${codeHash} SiteDomain=${siteDomain} HostedZoneId=${hostedZoneId} --no-fail-on-empty-changeset`)
     
     // Get the stack outputs to find our S3 bucket
     console.log(`Getting CloudFormation outputs for stack: ${stackName}`)
@@ -204,7 +242,7 @@ const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
     }
     
     console.log('Deployment completed successfully')
-    return { cloudfrontDomain }
+    return { cloudfrontDomain, siteDomain }
   } catch (error) {
     console.error('Error during deployment:', error instanceof Error ? error.message : String(error))
     process.exit(1)
@@ -231,12 +269,7 @@ const getDistributionIdFromDomain = async (domain: string): Promise<string | nul
 // Main execution
 const main = async (): Promise<void> => {
   // Get environment argument from command line (default to prod)
-  const environment: string | undefined = process.env.PUBLIC_ENV__APP_ENV
-
-  if (!environment) {
-    console.error('PUBLIC_ENV__APP_ENV environment variable is not set')
-    process.exit(1)
-  }
+  const environment = process.env.PUBLIC_ENV__APP_ENV || 'prod'
   
   // Validate environment
   const validEnvironments = ['dev', 'staging', 'prod']
@@ -248,10 +281,12 @@ const main = async (): Promise<void> => {
   console.log(`Deploying to ${environment} environment`)
   const result = await deploy(environment)
   
-  // Print the CloudFront domain name
+  // Print the CloudFront domain name and custom domain
   if (result?.cloudfrontDomain) {
     console.log(`\n✅ Deployment completed successfully!`)
-    console.log(`📱 ${environment.toUpperCase()} environment URL: https://${result.cloudfrontDomain}\n`)
+    console.log(`📱 ${environment.toUpperCase()} environment URLs:`)
+    console.log(`   CloudFront URL: https://${result.cloudfrontDomain}`)
+    console.log(`   Custom Domain: https://${result.siteDomain}\n`)
   }
 }
 
