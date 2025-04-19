@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Personal website with server-side rendering using Vike and React deployed with API Gateway and Lambda
+Description: Personal website with server-side rendering using Vike and React deployed with Lambda Function URL
 
 Parameters:
   Environment:
@@ -139,28 +139,6 @@ Resources:
           CookieBehavior: all
         QueryStringsConfig: 
           QueryStringBehavior: all
-  
-  # CloudFront IAM Role for Lambda Function URL access
-  CloudFrontLoggingRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: LambdaFunctionUrlAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - lambda:InvokeFunctionUrl
-                Resource: !GetAtt PersonalWebsiteFunction.Arn
-      Path: /service-role/
 
   # CloudFront distribution that uses Lambda Function URL and S3
   CloudFrontDistribution:
@@ -249,14 +227,6 @@ Resources:
           - ErrorCode: 403
             ResponseCode: 200
             ResponsePagePath: /index.html
-  
-  LambdaFunctionUrlPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref PersonalWebsiteFunction
-      Action: lambda:InvokeFunctionUrl
-      Principal: "*"
-      FunctionUrlAuthType: NONE
 
   # ACM Certificate with automatic DNS validation
   SiteCertificate:
