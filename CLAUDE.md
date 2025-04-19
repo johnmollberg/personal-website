@@ -12,9 +12,11 @@ This is a personal website built with:
 - **Dev Server**: `yarn start` 
 - **Build**: `yarn build`
 - **Lint**: `yarn lint`
-- **Test**: `yarn test`
+- **Test**: `yarn test` (Vitest)
 - **Test Watch Mode**: `yarn test:watch`
-- **Single Test**: `yarn test <test-path>`
+- **Test UI**: `yarn test:ui` (Vitest UI)
+- **Jest Tests**: `yarn test:jest`
+- **Jest Watch Mode**: `yarn test:jest:watch`
 
 ### Environment-Specific Commands
 - **Dev Server (Development)**: `yarn start:dev`
@@ -26,22 +28,16 @@ This is a personal website built with:
 
 ### Deployment Commands
 #### Development Environment
-- **Deploy Infrastructure**: `yarn deploy:dev`
-- **Deploy Static Assets**: `yarn deploy:static:dev`
-- **Deploy Everything**: `yarn deploy:all:dev`
-- **Invalidate Cache**: `yarn invalidate-cache:dev`
+- **Deploy**: `yarn deploy:dev`
 
 #### Staging Environment
-- **Deploy Infrastructure**: `yarn deploy:staging`
-- **Deploy Static Assets**: `yarn deploy:static:staging`
-- **Deploy Everything**: `yarn deploy:all:staging`
-- **Invalidate Cache**: `yarn invalidate-cache:staging`
+- **Deploy**: `yarn deploy:staging`
 
 #### Production Environment
-- **Deploy Infrastructure**: `yarn deploy:prod` or `yarn deploy`
-- **Deploy Static Assets**: `yarn deploy:static:prod` or `yarn deploy:static`
-- **Deploy Everything**: `yarn deploy:all:prod` or `yarn deploy:all`
-- **Invalidate Cache**: `yarn invalidate-cache:prod` or `yarn invalidate-cache`
+- **Deploy**: `yarn deploy:prod` or `yarn deploy`
+
+### Miscellaneous Commands
+- **Create Statsig Secrets**: `yarn create-statsig-secrets`
 
 ## Code Style Guidelines
 - **TypeScript**: Use TypeScript for all new code with proper type definitions
@@ -57,7 +53,7 @@ This is a personal website built with:
 - Migrated from Vite CLI to Vike framework
 - Files moved from src/pages/index and src/pages/renderer to src/pages root
 - CloudFront distribution managed via template.yaml
-- Server-side rendering implemented with Lambda@Edge
+- Server-side rendering implemented with Lambda Function URL
 
 ## Session Context
 Add important context from each Claude session here to ensure continuity between sessions. Include:
@@ -66,6 +62,97 @@ Add important context from each Claude session here to ensure continuity between
 - Changes implemented
 - Known issues
 - Current priorities
+
+### 2025-04-19 (Session 2)
+- Migrated from API Gateway to Lambda Function URL:
+  - Replaced API Gateway with Lambda Function URL as CloudFront origin
+  - Updated Lambda handler to process Function URL events instead of API Gateway events
+  - Modified response format to support Function URL cookies array
+  - Updated CloudFront distribution to use Lambda Function URL as primary origin
+  - Removed API Gateway resources and all associated configurations
+  - Created CloudWatch Log Group specifically for Lambda Function URL logs
+  - Updated IAM permissions to allow CloudFront to invoke Lambda Function URL
+  - Maintained S3 origin for static assets with the same caching behavior
+  - Simplified architecture by removing API Gateway as an intermediary layer
+  - Used environment-specific naming for all resources
+  - Added Lambda Function URL to CloudFormation outputs
+
+### 2025-04-19 (Session 1)
+- Added CloudFront real-time logging to CloudWatch:
+  - Implemented AWS::CloudFront::RealtimeLogConfig resource
+  - Set up Kinesis Firehose delivery stream for log processing
+  - Created Lambda function to transform logs and send to CloudWatch Logs
+  - Added S3 bucket for temporary log storage with 1-day lifecycle policy
+  - Added real-time logging to all cache behaviors
+  - Created necessary IAM roles and permissions for the logging pipeline
+  - Configured comprehensive field list for detailed logging
+  - Set 100% sampling rate for all requests
+  - Used environment-specific naming for all resources
+  - Created complete end-to-end logging solution from CloudFront to CloudWatch
+
+### 2025-04-18 (Session 2)
+- Added IAM permissions for CloudFront to invoke API Gateway:
+  - Updated CloudFrontLoggingRole with execute-api:Invoke permission
+  - Removed unused CloudFront logging configurations
+  - Renamed policy from CloudWatchLogsAccess to ApiGatewayAccess
+  - Maintained CloudWatch Log Group for compatibility
+  - Removed unused Fields and SamplingRate from CloudFrontLoggingRole
+  - Removed RealtimeLogConfigArn references from CloudFront behaviors
+  - Simplified IAM role to focus on API Gateway access
+
+### 2025-04-18 (Session 1)
+- Fixed CloudFront logging configuration issue:
+  - Completely removed CloudFront logging configuration from template.yaml
+  - Reverted attempt to implement CloudWatch logging for CloudFront
+  - Kept CloudWatch Log Group for CloudFront logs (/aws/cloudfront/personal-website-${Environment})
+  - Maintained 30-day retention policy for CloudFront logs
+  - Added comments in template.yaml about removed logging configuration
+  - API Gateway logs are still properly directed to CloudWatch
+
+### 2025-04-08 (Session 3)
+- Changed CloudFront logging approach:
+  - Created CloudWatch Log Group for CloudFront logs (/aws/cloudfront/personal-website-${Environment})
+  - Removed S3 LoggingBucket resources and associated permissions
+  - Set 30-day retention policy for CloudFront logs
+  - Added IAM permissions for Lambda to write to CloudFront logs
+  - Added comments for future implementation of real-time logs
+  - Simplified infrastructure by consolidating logging approach
+
+### 2025-04-08 (Session 2)
+- Migrated from Lambda@Edge to API Gateway with Lambda:
+  - Replaced CloudFront origin-request Lambda@Edge function with API Gateway + Lambda backend
+  - Updated CloudFormation template to create API Gateway resources
+  - Modified Lambda handler to work with API Gateway events instead of CloudFront events
+  - Added environment variables to Lambda function (previously not possible with Lambda@Edge)
+  - Simplified IAM permissions by removing Lambda@Edge specific policies
+  - Updated CloudFront distribution to use API Gateway as primary origin
+  - Maintained S3 origin for static assets with the same caching behavior
+  - Added API Gateway logging to CloudWatch with detailed request format
+  - Updated Lambda response format to work with API Gateway
+  - Removed CodeHash parameter that was needed for Lambda@Edge versioning
+  - Added proper cookie handling in new Lambda handler
+  - Improved error handling with appropriate API Gateway response formats
+  - Added IAM role and API Gateway account configuration for CloudWatch logs
+    - Created ApiGatewayCloudWatchLogsRole with proper assume role permissions
+    - Added AWS::ApiGateway::Account resource to set up CloudWatch logs role
+    - Made API Gateway depend on account configuration to ensure proper deployment order
+
+### 2025-04-08 (Session 1)
+- Added a Lambda warm-up solution:
+  - Created a scheduled Lambda function that runs every 5 minutes
+  - Function makes HTTPS requests to the website to keep the SSR Lambda warm
+  - Added the necessary infrastructure in template.yaml including IAM role and event schedule
+  - Added follow-redirects package for simplified HTTPS requests
+  - Implemented proper error handling and logging
+  - Set up environment variables to pass the site domain to the function
+  - Added a shutdown log statement to the SSR Lambda to track when it's shut down
+  - Deployed the warm-up function to multiple regions for better coverage:
+    - US East 1 (N. Virginia)
+    - US East 2 (Ohio)
+    - US West 1 (N. California)
+    - US West 2 (Oregon)
+    - Canada Central 1
+  - Each region has its own Lambda function with the same code but region-specific triggers
 
 ### 2025-04-05 (Session 2)
 - Refactored code to better leverage Vike hooks
@@ -212,7 +299,7 @@ Add important context from each Claude session here to ensure continuity between
 - Fixed Lambda@Edge issues with CloudFront
   - Updated Lambda handler to check for valid event structure
   - Added comprehensive logging for debugging
-  - Added CloudFront logging to S3 bucket
+  - Added CloudFront logging configuration
   - Ensured proper IAM permissions for Lambda@Edge
   - Set cache headers to no-cache for dynamic content
 - Updated deployment process
