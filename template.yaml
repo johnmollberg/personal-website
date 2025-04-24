@@ -1,28 +1,27 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Personal website with server-side rendering using Vike and React deployed with Lambda@Edge
+Description: Personal website with server-side rendering using Vike and React deployed with Lambda Function URL
 
 Parameters:
-  CodeHash:
-    Type: String
-    Description: Hash of the Lambda function code (used to determine if a new version is needed)
-    Default: '0000000000'
-  Environment:
+  PublicEnvAppEnv:
     Type: String
     Description: Environment to deploy to (dev, staging, prod)
-    Default: 'prod'
     AllowedValues:
       - dev
       - staging
       - prod
-  SiteDomain:
+  PublicEnvSiteDomain:
     Type: String
     Description: Custom domain for the website (e.g., example.com)
-    Default: 'johnmollberg.com'
-  HostedZoneId:
+  ServerEnvHostedZoneId:
     Type: String
     Description: Route53 Hosted Zone ID
-    Default: 'Z2P8S248LOC4KP'
+  ServerEnvAwsAccountId:
+    Type: String
+    Description: AWS Account ID
+  ServerEnvStatsigSecretId:
+    Type: String
+    Description: Statsig secret ID
 
 Globals:
   Function:
@@ -30,36 +29,40 @@ Globals:
     MemorySize: 512
 
 Resources:
-  # Lambda@Edge function for SSR
+  # Lambda function for SSR with Function URL
   PersonalWebsiteFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./dist/server
       Handler: index.handler
-      Runtime: nodejs22.x  # Using latest Node.js 22.x runtime
-      FunctionName: !Sub "personal-website-${Environment}-ssr"
+      Runtime: nodejs22.x
+      FunctionName: !Sub "personal-website-${PublicEnvAppEnv}-ssr"
       Architectures:
         - x86_64
-      # Lambda@Edge functions must be deployed to us-east-1
-      # and referenced from CloudFront by version/alias
-      # NOTE: Lambda@Edge functions cannot have environment variables
-      # We'll use a hardcoded secret name in the code instead
-      Timeout: 5  # Lambda@Edge has a maximum timeout of 5 seconds for origin-request
-      MemorySize: 1024  # Increased memory for better performance
+      Timeout: 30
+      MemorySize: 1024
+      Environment:
+        Variables:
+          NODE_ENV: "production"
+          PUBLIC_ENV__APP_ENV: !Ref PublicEnvAppEnv
+          PUBLIC_ENV__SITE_DOMAIN: !Ref PublicEnvSiteDomain
+          SERVER_ENV__AWS_ACCOUNT_ID: !Ref ServerEnvAwsAccountId
+          SERVER_ENV__HOSTED_ZONE_ID: !Ref ServerEnvHostedZoneId
+          SERVER_ENV__STATSIG_SECRET_ID: !Ref ServerEnvStatsigSecretId
+
+      Role: !GetAtt PersonalWebsiteFunctionRole.Arn
       FunctionUrlConfig:
         AuthType: NONE
         Cors:
           AllowOrigins:
-            - '*'
+            - "*"
           AllowMethods:
             - GET
-            - POST
-            - HEAD
           AllowHeaders:
-            - '*'
-      Role: !GetAtt PersonalWebsiteFunctionRole.Arn
+            - "*"
+          MaxAge: 3600
 
-  # IAM Role for the Lambda@Edge function
+  # IAM Role for the Lambda function
   PersonalWebsiteFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -70,14 +73,12 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-                - edgelambda.amazonaws.com
-                - cloudfront.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
         - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
       Policies:
-        - PolicyName: LambdaEdgeExecutionPolicy
+        - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -88,18 +89,11 @@ Resources:
                   - 'logs:PutLogEvents'
                 Resource: 'arn:aws:logs:*:*:*'
               - Effect: Allow
-                Action: 
-                  - 'lambda:GetFunction'
-                  - 'lambda:EnableReplication*'
-                  - 'iam:CreateServiceLinkedRole'
-                  - 'cloudfront:UpdateDistribution'
-                Resource: '*'
-              - Effect: Allow
                 Action:
                   - 'secretsmanager:GetSecretValue'
                   - 'secretsmanager:DescribeSecret'
                 Resource: 
-                  - !Sub 'arn:aws:secretsmanager:us-east-1:${AWS::AccountId}:secret:${Environment}/statsig-server-secret-??????'
+                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PublicEnvAppEnv}/statsig-server-secret-??????'
               - Effect: Allow
                 Action: 
                   - 's3:GetObject'
@@ -107,56 +101,14 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::${StaticAssets}/*'
                   - !Sub 'arn:aws:s3:::${StaticAssets}'
-
-  # S3 bucket for CloudFront access logs
-  LoggingBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    Properties:
-      BucketName: !Sub "personal-website-logs-${Environment}-${AWS::AccountId}"
-      VersioningConfiguration:
-        Status: Suspended
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: BucketOwnerPreferred
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteLogsAfter30Days
-            Status: Enabled
-            ExpirationInDays: 30
-  
-  # Log delivery permissions using a bucket ACL
-  LoggingBucketBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref LoggingBucket
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: logging.s3.amazonaws.com
-            Action: 
-              - s3:PutObject
-            Resource: !Sub "arn:aws:s3:::${LoggingBucket}/*"
-          - Effect: Allow
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Action: 
-              - s3:GetBucketAcl
-              - s3:PutBucketAcl
-            Resource: !Sub "arn:aws:s3:::${LoggingBucket}"
+              # Removed unused CloudFront logging permissions
+              # Removed unused Kinesis CloudFront logs permissions
 
   # S3 bucket for static assets
   StaticAssets:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "personal-website-assets-${Environment}-${AWS::AccountId}"
+      BucketName: !Sub "personal-website-assets-${PublicEnvAppEnv}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -164,7 +116,6 @@ Resources:
         RestrictPublicBuckets: false
       WebsiteConfiguration:
         IndexDocument: index.html
-        # Removed ErrorDocument to allow proper 404 handling
       OwnershipControls:
         Rules:
           - ObjectOwnership: ObjectWriter
@@ -181,15 +132,42 @@ Resources:
             Resource: !Sub "${StaticAssets.Arn}/*"
             Principal: "*"
 
-  # CloudFront distribution that uses Lambda@Edge
+  # CloudFront Origin Request Policy for API Gateway
+  CloudFrontLambdaFunctionUrlOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties: 
+      OriginRequestPolicyConfig:
+        Name: !Sub "LambdaFunctionUrlPolicy-${PublicEnvAppEnv}"
+        Comment: "Policy for forwarding all request headers to Lambda Function URL"
+        HeadersConfig: 
+          HeaderBehavior: allExcept
+          Headers:
+            - "Host"
+        CookiesConfig: 
+          CookieBehavior: all
+        QueryStringsConfig: 
+          QueryStringBehavior: all
+
+  # CloudFront distribution that uses Lambda Function URL and S3
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       Tags:
         - Key: Environment
-          Value: !Ref Environment
+          Value: !Ref PublicEnvAppEnv
       DistributionConfig:
         Origins:
+          - Id: LambdaFunctionUrl
+            DomainName: !Select [0, !Split ["/", !Select [1, !Split ["//", !GetAtt PersonalWebsiteFunctionUrl.FunctionUrl]]]]
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+            OriginCustomHeaders:
+              - HeaderName: X-Forwarded-Host
+                HeaderValue: !Ref PublicEnvSiteDomain
           - Id: S3Static
             DomainName: !GetAtt StaticAssets.DomainName
             CustomOriginConfig:
@@ -197,15 +175,13 @@ Resources:
               HTTPSPort: 443
               OriginProtocolPolicy: http-only
         Enabled: true
-        Logging:
-          Bucket: !GetAtt LoggingBucket.DomainName
-          Prefix: 'cloudfront-logs/'
-          IncludeCookies: false
         DefaultCacheBehavior:
-          TargetOriginId: S3Static
+          TargetOriginId: LambdaFunctionUrl
           ViewerProtocolPolicy: redirect-to-https
-          AllowedMethods: [GET, HEAD, OPTIONS]
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
           CachedMethods: [GET, HEAD]
+          OriginRequestPolicyId: !Ref CloudFrontLambdaFunctionUrlOriginRequestPolicy
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled
           ForwardedValues:
             QueryString: true
             Cookies:
@@ -219,9 +195,6 @@ Resources:
           DefaultTTL: 0
           MinTTL: 0
           MaxTTL: 0
-          LambdaFunctionAssociations:
-            - EventType: origin-request
-              LambdaFunctionARN: !Ref PersonalWebsiteFunctionVersion
         CacheBehaviors:
           - PathPattern: "/assets/*"
             TargetOriginId: S3Static
@@ -253,7 +226,7 @@ Resources:
         PriceClass: PriceClass_100
         HttpVersion: http2
         Aliases:
-          - !Ref SiteDomain
+          - !Ref PublicEnvSiteDomain
         ViewerCertificate:
           AcmCertificateArn: !Ref SiteCertificate
           SslSupportMethod: sni-only
@@ -262,63 +235,40 @@ Resources:
           - ErrorCode: 403
             ResponseCode: 200
             ResponsePagePath: /index.html
-          # Removed 404 error response override to allow proper 404 handling
 
-  # Get a specific version of the Lambda function to use in CloudFront
-  # New versions are only created when the code hash changes
-  PersonalWebsiteFunctionVersion:
-    Type: AWS::Lambda::Version
-    Properties:
-      FunctionName: !Ref PersonalWebsiteFunction
-      Description: !Sub "Version for Lambda@Edge in ${Environment} environment - CodeHash: ${CodeHash}"
-      # The Code Hash in the description ensures new versions are only created when the code changes
-      
   # ACM Certificate with automatic DNS validation
   SiteCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: !Ref SiteDomain
+      DomainName: !Ref PublicEnvSiteDomain
       SubjectAlternativeNames:
-        - !Ref SiteDomain  # Include both apex and www domains if needed
+        - !Ref PublicEnvSiteDomain
       ValidationMethod: DNS
       DomainValidationOptions:
-        - DomainName: !Ref SiteDomain
-          HostedZoneId: !Ref HostedZoneId
+        - DomainName: !Ref PublicEnvSiteDomain
+          HostedZoneId: !Ref ServerEnvHostedZoneId
       Tags:
         - Key: Environment
-          Value: !Ref Environment
+          Value: !Ref PublicEnvAppEnv
         - Key: Name
-          Value: !Sub "${SiteDomain} Certificate"
+          Value: !Sub "${PublicEnvSiteDomain} Certificate"
         
   # Route 53 record to point domain to CloudFront
   Route53CloudFrontRecord:
     Type: AWS::Route53::RecordSet
     DependsOn: CloudFrontDistribution
     Properties:
-      HostedZoneId: !Ref HostedZoneId
-      Name: !Ref SiteDomain
+      HostedZoneId: !Ref ServerEnvHostedZoneId
+      Name: !Ref PublicEnvSiteDomain
       Type: A
       AliasTarget:
         DNSName: !GetAtt CloudFrontDistribution.DomainName
         HostedZoneId: Z2FDTNDATAQYW2 # CloudFront's hosted zone ID (constant value)
 
-
 Outputs:
-  PersonalWebsiteFunction:
-    Description: "Personal Website Lambda Function ARN"
-    Value: !GetAtt PersonalWebsiteFunction.Arn
-  PersonalWebsiteFunctionVersion:
-    Description: "Personal Website Lambda Function Version ARN for Lambda@Edge"
-    Value: !Ref PersonalWebsiteFunctionVersion
   CloudFrontDistributionDomainName:
     Description: "CloudFront Distribution Domain Name"
     Value: !GetAtt CloudFrontDistribution.DomainName
   StaticAssetsS3BucketName:
     Description: "S3 Bucket for Static Assets"
     Value: !Ref StaticAssets
-  SiteDomainName:
-    Description: "Custom Site Domain"
-    Value: !Ref SiteDomain
-  CertificateARN:
-    Description: "ACM Certificate ARN"
-    Value: !Ref SiteCertificate

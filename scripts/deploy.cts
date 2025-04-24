@@ -1,8 +1,7 @@
 import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
-import * as dotenv from 'dotenv'
+import { join } from 'node:path'
 import { 
   CloudFormationClient, 
   DescribeStacksCommand
@@ -13,27 +12,11 @@ import {
   CreateInvalidationCommand,
   waitUntilInvalidationCompleted
 } from '@aws-sdk/client-cloudfront'
+import { loadEnv } from 'vite'
 
 // Load environment variables based on environment
-const loadEnvVariables = (environment: string) => {
-  // First load the common .env file
-  const commonEnvPath = resolve(process.cwd(), 'environment', '.env')
-  const commonEnv = dotenv.config({ path: commonEnvPath })
-  
-  // Then load the environment-specific .env file
-  const envPath = resolve(process.cwd(), 'environment', `.env.${environment}`)
-  const envResult = dotenv.config({ path: envPath, override: true })
-  
-  if (envResult.error) {
-    throw new Error(`Error loading environment file for ${environment}: ${envResult.error.message}`)
-  }
-  
-  // Set the PUBLIC_ENV__APP_ENV variable if not already set
-  if (!process.env.PUBLIC_ENV__APP_ENV) {
-    process.env.PUBLIC_ENV__APP_ENV = environment
-  }
-  
-  console.log(`Loaded environment variables for ${environment} environment`)
+const getEnvVariables = (environment: string) => {
+  return loadEnv(environment, 'environment', ['PUBLIC_ENV__', 'SERVER_ENV__'])
 }
 
 const execAsyncWithStdio = async (command: string, env?: Record<string, string>) => {
@@ -127,10 +110,10 @@ const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
     console.log(`Starting deployment to ${environment} environment`)
     
     // Load environment variables for the specified environment
-    loadEnvVariables(environment)
+    const envObject = getEnvVariables(environment)
     
     // Get site domain from environment variables
-    const siteDomain = process.env.PUBLIC_ENV__SITE_DOMAIN
+    const siteDomain = envObject.PUBLIC_ENV__SITE_DOMAIN
     if (!siteDomain) {
       throw new Error(`PUBLIC_ENV__SITE_DOMAIN is not defined in environment/${environment}.env`)
     }
@@ -141,21 +124,10 @@ const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
     // Build the application using yarn script with environment
     await buildApplication(environment)
     
-    // Calculate the code hash for Lambda function
-    console.log('Calculating Lambda code hash...')
-    const codeHash = await calculateCodeHash('./dist/server')
-    console.log(`Lambda code hash: ${codeHash}`)
-    
     // Run the SAM deploy command with environment and domain parameters
     console.log(`Deploying SAM template to ${stackName}...`)
     
-    // Get hosted zone ID from environment variables
-    const hostedZoneId = process.env.SERVER_ENV__HOSTED_ZONE_ID
-    if (!hostedZoneId) {
-      throw new Error(`SERVER_ENV__HOSTED_ZONE_ID is not defined in environment/.env`)
-    }
-    
-    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides Environment=${environment} CodeHash=${codeHash} SiteDomain=${siteDomain} HostedZoneId=${hostedZoneId} --no-fail-on-empty-changeset`)
+    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides ${Object.entries(envObject).map(([key, value]) => `${toPascalCase(key)}="${value}"`).join(' ')} --no-fail-on-empty-changeset`)
     
     // Get the stack outputs to find our S3 bucket
     console.log(`Getting CloudFormation outputs for stack: ${stackName}`)
@@ -295,3 +267,25 @@ main().catch((error) => {
   console.error('Deployment failed:', error instanceof Error ? error.message : String(error))
   process.exit(1)
 })
+
+/* example input:
+  PUBLIC_ENV__SITE_DOMAIN
+  SERVER_ENV__STATSIG_SECRET_ID
+  SERVER_ENV__HOSTED_ZONE_ID
+  SERVER_ENV__AWS_ACCOUNT_ID
+  SERVER_ENV__AWS_REGION
+
+  example output:
+  PublicEnvSiteDomain
+  ServerEnvStatsigSecretId
+  ServerEnvHostedZoneId
+  ServerEnvAwsAccountId
+  ServerEnvAwsRegion
+*/
+const toPascalCase = (str: string): string => {
+  return str
+    .split('_')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join('')
+}

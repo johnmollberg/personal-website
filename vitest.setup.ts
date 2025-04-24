@@ -7,5 +7,5 @@ vi.mock('import.meta.env', () => ({
   DEV: true,
   PROD: false,
   PUBLIC_ENV__APP_ENV: 'test',
-  PUBLIC_ENV__AWS_ACCOUNT_ID: '123456789012',
+  SERVER_ENV__AWS_ACCOUNT_ID: '123456789012',
 }))

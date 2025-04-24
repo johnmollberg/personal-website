@@ -1,56 +1,68 @@
 import { renderPage } from 'vike/server'
-import type { CloudFrontRequestEvent, CloudFrontRequestResult, CloudFrontResultResponse } from 'aws-lambda'
 import type { PageContextUserAdded } from '../src/vike.d.ts'
-const formatResponse = (response: Partial<CloudFrontResultResponse>) => {
-  const status = response.status || '500'
-  const statusDescription = getStatusDescription(Number(status))
-  return {
-    status,
-    statusDescription,
-    headers: {
-      'content-type': [{ key: 'Content-Type', value: 'text/plain' }],
-      ...response.headers,
-    },
-    body: response.body,
-    ...response,
+
+// Type definitions for Lambda Function URL event and response
+type LambdaFunctionUrlEvent = {
+  version: string
+  routeKey: string
+  rawPath: string
+  rawQueryString: string
+  headers: Record<string, string>
+  queryStringParameters?: Record<string, string>
+  requestContext: {
+    accountId: string
+    apiId: string
+    domainName: string
+    domainPrefix: string
+    http: {
+      method: string
+      path: string
+      protocol: string
+      sourceIp: string
+      userAgent: string
+    }
+    requestId: string
+    routeKey: string
+    stage: string
+    time: string
+    timeEpoch: number
   }
+  isBase64Encoded: boolean
 }
 
-// Handler for AWS Lambda@Edge (origin-request function for CloudFront)
-export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFrontRequestResult> => {
-  // Check if event has the expected structure
-  if (!event.Records?.[0]?.cf?.request) {
-    console.error('Invalid event structure:', JSON.stringify(event))
-    return formatResponse({
-      status: '500',
-      body: 'Server configuration error',
-    })
-  }
-  
-  const request = event.Records[0].cf.request
-  const { uri, querystring } = request
-  
+type LambdaFunctionUrlResponse = {
+  statusCode: number
+  headers: Record<string, string>
+  body: string
+  isBase64Encoded?: boolean
+  cookies?: string[]
+}
+
+// Handler for AWS Lambda with Function URL
+export const handler = async (event: LambdaFunctionUrlEvent): Promise<LambdaFunctionUrlResponse> => {
   // Log detailed request information
-  console.log('Request details:', JSON.stringify(request))
-  
-  // Create full URL for rendering
-  const queryString = querystring ? `?${querystring}` : ''
-  
-  // Transform CloudFront headers format to simple key-value format for Vike
-  const headers: Record<string, string> = {}
-  Object.entries(request.headers).forEach(([key, values]) => {
-    if (values && values.length > 0) {
-      headers[key] = values[0].value
-    }
-  })
+  console.log('Request details:', JSON.stringify(event))
   
   try {
-    // Ensure we're passing the statsigUser property correctly
+    // Extract path and query parameters
+    const path = event.rawPath || '/'
+    const queryString = event.rawQueryString 
+      ? '?' + event.rawQueryString
+      : ''
+    
+    // Get headers from the request
+    const headers: Record<string, string> = event.headers || {}
+    
+    // Add environment information
+    console.log('Environment:', process.env.PUBLIC_ENV__APP_ENV || 'undefined')
+    console.log('Site Domain:', process.env.PUBLIC_ENV__SITE_DOMAIN || 'undefined')
+    
+    // Render the page using Vike
     const pageContext = await renderPage<PageContextUserAdded, {
       urlOriginal: string
       headers: Record<string, string>
     }>({
-      urlOriginal: uri + queryString,
+      urlOriginal: path + queryString,
       headers,
     })
 
@@ -62,37 +74,41 @@ export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFront
     const { httpResponse } = pageContext
     
     if (!httpResponse) {
-      // Return a proper 404 response that won't trigger CloudFront's custom error handling
-      return formatResponse({
-        status: '404',
+      // Return a 404 response
+      return {
+        statusCode: 404,
         headers: {
-          'content-type': [{ key: 'Content-Type', value: 'text/plain' }],
-          'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+          'Content-Type': 'text/plain',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
         },
+        cookies: [],
         body: 'Not Found'
-      })
+      }
     }
     
     const { body, statusCode, contentType } = httpResponse
     
+    // Prepare cookies array if stableID exists
+    const cookies = stableID 
+      ? [`stableID=${stableID}; Path=/; HttpOnly; SameSite=Strict`]
+      : []
+    
     // Create the response object
-    const response = formatResponse({
-      status: statusCode.toString(),
+    const response: LambdaFunctionUrlResponse = {
+      statusCode,
       headers: {
-        'content-type': [{ key: 'Content-Type', value: contentType }],
-        'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
-        ...(stableID ? {
-          'set-cookie': [{ key: 'Set-Cookie', value: 'stableID=' + stableID + '; Path=/; HttpOnly; SameSite=Strict' }]
-        } : {}),
+        'Content-Type': contentType,
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       },
-      body,
-    })
+      cookies,
+      body
+    }
     
     // Log the response (excluding the full body for brevity)
     console.log('Sending response:', JSON.stringify({
-      status: response.status,
-      statusDescription: response.statusDescription,
+      statusCode: response.statusCode,
       headers: response.headers,
+      cookies: response.cookies,
       bodyLength: body.length,
     }))
     
@@ -108,37 +124,14 @@ export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFront
     console.log('errorDetails', errorDetails)
     
     // Create error response with debugging info
-    const response = formatResponse({
-      status: '500',
+    return {
+      statusCode: 500,
       headers: {
-        'cache-control': [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+        'Content-Type': 'text/plain',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       },
-      body: 'Internal Server Error',
-    })
-    
-    console.log('Sending error response:', JSON.stringify({
-      status: response.status,
-      statusDescription: response.statusDescription,
-      headers: response.headers
-    }))
-    
-    return response
+      cookies: [],
+      body: 'Internal Server Error'
+    }
   }
-}
-
-// Helper function for status descriptions
-const getStatusDescription = (statusCode: number): string => {
-  const statusMap: Record<number, string> = {
-    200: 'OK',
-    301: 'Moved Permanently',
-    302: 'Found',
-    304: 'Not Modified',
-    400: 'Bad Request',
-    401: 'Unauthorized',
-    403: 'Forbidden',
-    404: 'Not Found',
-    500: 'Internal Server Error'
-  }
-  
-  return statusMap[statusCode] || 'Unknown'
 }
