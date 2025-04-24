@@ -3,22 +3,25 @@ Transform: AWS::Serverless-2016-10-31
 Description: Personal website with server-side rendering using Vike and React deployed with Lambda Function URL
 
 Parameters:
-  Environment:
+  PublicEnvAppEnv:
     Type: String
     Description: Environment to deploy to (dev, staging, prod)
-    Default: 'prod'
     AllowedValues:
       - dev
       - staging
       - prod
-  SiteDomain:
+  PublicEnvSiteDomain:
     Type: String
     Description: Custom domain for the website (e.g., example.com)
-    Default: 'johnmollberg.com'
-  HostedZoneId:
+  ServerEnvHostedZoneId:
     Type: String
     Description: Route53 Hosted Zone ID
-    Default: 'Z2P8S248LOC4KP'
+  ServerEnvAwsAccountId:
+    Type: String
+    Description: AWS Account ID
+  ServerEnvStatsigSecretId:
+    Type: String
+    Description: Statsig secret ID
 
 Globals:
   Function:
@@ -33,15 +36,20 @@ Resources:
       CodeUri: ./dist/server
       Handler: index.handler
       Runtime: nodejs22.x
-      FunctionName: !Sub "personal-website-${Environment}-ssr"
+      FunctionName: !Sub "personal-website-${PublicEnvAppEnv}-ssr"
       Architectures:
         - x86_64
       Timeout: 30
       MemorySize: 1024
       Environment:
         Variables:
-          ENVIRONMENT: !Ref Environment
-          SITE_DOMAIN: !Ref SiteDomain
+          NODE_ENV: "production"
+          PUBLIC_ENV__APP_ENV: !Ref PublicEnvAppEnv
+          PUBLIC_ENV__SITE_DOMAIN: !Ref PublicEnvSiteDomain
+          SERVER_ENV__AWS_ACCOUNT_ID: !Ref ServerEnvAwsAccountId
+          SERVER_ENV__HOSTED_ZONE_ID: !Ref ServerEnvHostedZoneId
+          SERVER_ENV__STATSIG_SECRET_ID: !Ref ServerEnvStatsigSecretId
+
       Role: !GetAtt PersonalWebsiteFunctionRole.Arn
       FunctionUrlConfig:
         AuthType: NONE
@@ -85,7 +93,7 @@ Resources:
                   - 'secretsmanager:GetSecretValue'
                   - 'secretsmanager:DescribeSecret'
                 Resource: 
-                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${Environment}/statsig-server-secret-??????'
+                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PublicEnvAppEnv}/statsig-server-secret-??????'
               - Effect: Allow
                 Action: 
                   - 's3:GetObject'
@@ -100,7 +108,7 @@ Resources:
   StaticAssets:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "personal-website-assets-${Environment}-${AWS::AccountId}"
+      BucketName: !Sub "personal-website-assets-${PublicEnvAppEnv}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -129,7 +137,7 @@ Resources:
     Type: AWS::CloudFront::OriginRequestPolicy
     Properties: 
       OriginRequestPolicyConfig:
-        Name: !Sub "LambdaFunctionUrlPolicy-${Environment}"
+        Name: !Sub "LambdaFunctionUrlPolicy-${PublicEnvAppEnv}"
         Comment: "Policy for forwarding all request headers to Lambda Function URL"
         HeadersConfig: 
           HeaderBehavior: allExcept
@@ -146,7 +154,7 @@ Resources:
     Properties:
       Tags:
         - Key: Environment
-          Value: !Ref Environment
+          Value: !Ref PublicEnvAppEnv
       DistributionConfig:
         Origins:
           - Id: LambdaFunctionUrl
@@ -159,7 +167,7 @@ Resources:
                 - TLSv1.2
             OriginCustomHeaders:
               - HeaderName: X-Forwarded-Host
-                HeaderValue: !Ref SiteDomain
+                HeaderValue: !Ref PublicEnvSiteDomain
           - Id: S3Static
             DomainName: !GetAtt StaticAssets.DomainName
             CustomOriginConfig:
@@ -218,7 +226,7 @@ Resources:
         PriceClass: PriceClass_100
         HttpVersion: http2
         Aliases:
-          - !Ref SiteDomain
+          - !Ref PublicEnvSiteDomain
         ViewerCertificate:
           AcmCertificateArn: !Ref SiteCertificate
           SslSupportMethod: sni-only
@@ -232,26 +240,26 @@ Resources:
   SiteCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: !Ref SiteDomain
+      DomainName: !Ref PublicEnvSiteDomain
       SubjectAlternativeNames:
-        - !Ref SiteDomain
+        - !Ref PublicEnvSiteDomain
       ValidationMethod: DNS
       DomainValidationOptions:
-        - DomainName: !Ref SiteDomain
-          HostedZoneId: !Ref HostedZoneId
+        - DomainName: !Ref PublicEnvSiteDomain
+          HostedZoneId: !Ref ServerEnvHostedZoneId
       Tags:
         - Key: Environment
-          Value: !Ref Environment
+          Value: !Ref PublicEnvAppEnv
         - Key: Name
-          Value: !Sub "${SiteDomain} Certificate"
+          Value: !Sub "${PublicEnvSiteDomain} Certificate"
         
   # Route 53 record to point domain to CloudFront
   Route53CloudFrontRecord:
     Type: AWS::Route53::RecordSet
     DependsOn: CloudFrontDistribution
     Properties:
-      HostedZoneId: !Ref HostedZoneId
-      Name: !Ref SiteDomain
+      HostedZoneId: !Ref ServerEnvHostedZoneId
+      Name: !Ref PublicEnvSiteDomain
       Type: A
       AliasTarget:
         DNSName: !GetAtt CloudFrontDistribution.DomainName

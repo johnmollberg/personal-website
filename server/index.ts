@@ -54,8 +54,8 @@ export const handler = async (event: LambdaFunctionUrlEvent): Promise<LambdaFunc
     const headers: Record<string, string> = event.headers || {}
     
     // Add environment information
-    console.log('Environment:', process.env.ENVIRONMENT || 'undefined')
-    console.log('Site Domain:', process.env.SITE_DOMAIN || 'undefined')
+    console.log('Environment:', process.env.PUBLIC_ENV__APP_ENV || 'undefined')
+    console.log('Site Domain:', process.env.PUBLIC_ENV__SITE_DOMAIN || 'undefined')
     
     // Render the page using Vike
     const pageContext = await renderPage<PageContextUserAdded, {
