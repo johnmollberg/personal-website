@@ -10,8 +10,8 @@ This project is an open-source personal website built with modern tools and fram
 ## Tech Stack
 - **Frontend:** React + TypeScript with Vike for SSR
 - **Backend/Infrastructure:** AWS SAM (TypeScript)
-- **Hosting:** AWS (S3 + CloudFront + Lambda@Edge for SSR)
-- **Testing:** Jest + React Testing Library
+- **Hosting:** AWS (S3 + CloudFront + Lambda)
+- **Testing:** Vitest
 
 ## Project Structure
 ```

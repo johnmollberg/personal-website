@@ -15,8 +15,6 @@ This is a personal website built with:
 - **Test**: `yarn test` (Vitest)
 - **Test Watch Mode**: `yarn test:watch`
 - **Test UI**: `yarn test:ui` (Vitest UI)
-- **Jest Tests**: `yarn test:jest`
-- **Jest Watch Mode**: `yarn test:jest:watch`
 
 ### Environment-Specific Commands
 - **Dev Server (Development)**: `yarn start:dev`
