@@ -21,6 +21,10 @@
   padding: 0;
 }
 
+html, body {
+  overscroll-behavior: none;
+}
+
 body {
   background-color: #ffffff;
   min-height: 100vh;
