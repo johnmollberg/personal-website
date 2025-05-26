@@ -41,6 +41,7 @@ Resources:
         - x86_64
       Timeout: 30
       MemorySize: 1024
+      ReservedConcurrentExecutions: 1
       Environment:
         Variables:
           NODE_ENV: "production"

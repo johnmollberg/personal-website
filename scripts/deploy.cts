@@ -127,7 +127,7 @@ const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
     // Run the SAM deploy command with environment and domain parameters
     console.log(`Deploying SAM template to ${stackName}...`)
     
-    await execAsyncWithStdio(`sam deploy --resolve-s3 --stack-name ${stackName} --region ${region} --capabilities CAPABILITY_IAM --parameter-overrides ${Object.entries(envObject).map(([key, value]) => `${toPascalCase(key)}="${value}"`).join(' ')} --no-fail-on-empty-changeset`)
+    await execAsyncWithStdio(`sam deploy --stack-name ${stackName} --region ${region} --parameter-overrides ${Object.entries(envObject).map(([key, value]) => `${toPascalCase(key)}="${value}"`).join(' ')} --no-fail-on-empty-changeset`)
     
     // Get the stack outputs to find our S3 bucket
     console.log(`Getting CloudFormation outputs for stack: ${stackName}`)
