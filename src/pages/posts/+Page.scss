@@ -5,7 +5,7 @@
 
 .intro-text {
   font-size: 1.2rem;
-  color: #555;
+  color: $text-medium;
   max-width: 600px;
   margin: 1rem auto;
 }
@@ -20,5 +20,5 @@
   text-align: center;
   padding: 40px;
   font-style: italic;
-  color: #666;
+  color: $text-light;
 }

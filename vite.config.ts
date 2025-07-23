@@ -36,8 +36,7 @@ export default defineConfig(({ mode, isSsrBuild, command }) => {
     css: {
       preprocessorOptions: {
         scss: {
-          // You can add global SCSS variables here if needed
-          // additionalData: `$primary-color: #ff0000;`
+          additionalData: `@use "@/scss/_variables.scss" as *;`
         }
       }
     },

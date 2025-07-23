@@ -1,7 +1,7 @@
 ---
 title: "Hello World: My First Blog Post"
 date: "2025-04-02"
-slug: "hello-world"
+slug: "hello_world"
 description: "An introduction to my new blog and what to expect."
 ---
 

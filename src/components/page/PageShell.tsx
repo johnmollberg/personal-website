@@ -17,6 +17,7 @@ export const PageShell = ({ children, pageContext }: {
               <a href="/">Home</a>
               <a href="/posts">Blog</a>
               <a href="/resume">Resume</a>
+              <a href="/todo">Todo</a>
             </nav>
           </header>
           <main>

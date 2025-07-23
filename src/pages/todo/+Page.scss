@@ -1,0 +1,50 @@
+@use '../../scss/variables' as *;
+@use '../../scss/colors' as *;
+@use '../../scss/mixins' as *;
+
+.todo-page {
+  max-width: $max-width;
+  margin: 0 auto;
+  padding: $spacing-large;
+
+  h1 {
+    margin-bottom: $spacing-large;
+    color: $primary-color;
+    text-align: center;
+  }
+
+  .todo-description {
+    margin-bottom: $spacing-large;
+    padding: $spacing-medium;
+    background-color: $background-light;
+    border-radius: $border-radius;
+    border-left: 4px solid $primary-color;
+    font-size: $font-size-base;
+    line-height: 1.6;
+    color: $text-color;
+  }
+
+  .todo-list {
+    padding-left: $spacing-large;
+    
+    .todo-item {
+      padding: $spacing-small 0;
+      font-size: $font-size-base;
+      line-height: 1.6;
+      color: $text-color;
+      position: relative;
+      
+      &::before {
+        content: '•';
+        color: $primary-color;
+        font-weight: bold;
+        position: absolute;
+        left: -#{$spacing-medium};
+      }
+      
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+}

@@ -1,5 +1,4 @@
 @forward '../../scss/base';
-@use '../../scss/variables' as *;
 @use '../../scss/mixins' as *;
 
 .page-layout {
@@ -9,8 +8,8 @@
 }
 
 .main-header {
-  background-color: #333;
-  color: white;
+  background-color: $background-dark;
+  color: $text-extra-light;
   padding: 1rem 2rem;
   
   nav {
@@ -21,7 +20,7 @@
   }
   
   a {
-    color: white;
+    color: $text-extra-light;
     text-decoration: none;
     
     &:hover {
@@ -40,5 +39,5 @@ main {
   padding: 1.5rem;
   text-align: center;
   font-size: 0.9rem;
-  color: $text-light;
+  color: $text-medium;
 }

@@ -26,6 +26,10 @@ export interface ResumePageData extends GuardData {
   // Add any resume-specific data here if needed
 }
 
+export interface TodoPageData extends GuardData {
+  // Add any todo-specific data here if needed
+}
+
 export interface PageProps {
   context?: PageContextClient | PageContextServer
 }
@@ -34,7 +38,7 @@ export interface PageProps {
 interface PageContextShared {
   Page: (props: PageProps) => JSX.Element
   // Data from the data hook (this will be different for each page)
-  data?: GuardData | HomePageData | PostsPageData | PostPageData | ResumePageData
+  data?: GuardData | HomePageData | PostsPageData | PostPageData | ResumePageData | TodoPageData
   // Data from the guard hook
   guardData?: GuardData
 }
