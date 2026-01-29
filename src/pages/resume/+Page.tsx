@@ -12,8 +12,15 @@ export const Page = ({ context }: PageProps) => {
     <PageShell pageContext={contextToUse}>
       <div className="resume-page">
         <header className="resume-header">
-          <h1>John Mollberg</h1>
-          <h2>Software Engineering Manager</h2>
+          <div className="resume-header-left">
+            <h1>John Mollberg</h1>
+            <h2>Software Engineering Manager</h2>
+          </div>
+          <div className="resume-header-right">
+            <div className="contact-item">mollbergjo@gmail.com</div>
+            <div className="contact-item">218-234-7709</div>
+            <div className="contact-item">Roseville, MN</div>
+          </div>
         </header>
         
         <section className="resume-section">
@@ -67,37 +74,37 @@ export const Page = ({ context }: PageProps) => {
           <div className="claude-code-highlight">
             <h3 className="claude-code-title">Claude Code</h3>
             <p className="claude-code-intro">
-              Leveraging Claude Code as an advanced AI agent integrated directly into
-              professional software development workflows, going far beyond traditional
-              AI assistance tools.
+              Early adopter pushing the boundaries of AI-augmented development. While most
+              engineers use AI for autocomplete, or as a learning resource, I use it as an
+              agent to do the actual work.
             </p>
             <div className="claude-code-capabilities">
               <div className="capability-card">
                 <h4>Production Debugging</h4>
                 <p>
-                  Training Claude to analyze production logs, trace complex issues, and
-                  propose solutions for critical system failures
+                  Claude analyzes production logs, traces root causes, and proposes
+                  fixes - faster than I could manually
                 </p>
               </div>
               <div className="capability-card">
-                <h4>Pull Request Authorship</h4>
+                <h4>Feature Delivery</h4>
                 <p>
-                  Enabling Claude to independently open pull requests with complete
-                  implementations, tests, and documentation
+                  Claude opens PRs with full implementations, tests, and docs that
+                  pass code review and are ready to ship to production
                 </p>
               </div>
               <div className="capability-card">
                 <h4>Integration Testing</h4>
                 <p>
-                  Having Claude write, execute, and maintain comprehensive integration
-                  test suites across multiple services
+                  Claude writes and maintains comprehensive test suites across
+                  services, catching regressions I'd miss
                 </p>
               </div>
               <div className="capability-card">
                 <h4>Product Planning</h4>
                 <p>
-                  Collaborating with Claude to generate detailed product plans,
-                  architectural designs, and technical roadmaps for review
+                  Claude drafts technical roadmaps and architectural designs that
+                  I refine and present to stakeholders
                 </p>
               </div>
             </div>
@@ -180,7 +187,7 @@ export const Page = ({ context }: PageProps) => {
         </section>
         
         <div className="resume-actions">
-          <a href="/resume.pdf" className="resume-download-button">Download PDF</a>
+          <a href="/resume.pdf" download="John_Mollberg_Resume.pdf" className="resume-download-button">Download PDF</a>
         </div>
       </div>
     </PageShell>

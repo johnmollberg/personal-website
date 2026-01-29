@@ -123,7 +123,12 @@ const deploy = async (environment = 'prod'): Promise<DeploymentResult> => {
     
     // Build the application using yarn script with environment
     await buildApplication(environment)
-    
+
+    // Generate resume PDF
+    console.log('Generating resume PDF...')
+    await execAsyncWithStdio('yarn generate:resume-pdf')
+    console.log('Resume PDF generated successfully')
+
     // Run the SAM deploy command with environment and domain parameters
     console.log(`Deploying SAM template to ${stackName}...`)
     

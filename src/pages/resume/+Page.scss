@@ -5,8 +5,10 @@
 }
 
 .resume-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 2rem;
-  text-align: center;
 
   h1 {
     font-size: 2.5rem;
@@ -18,6 +20,20 @@
     color: $text-medium;
     font-weight: normal;
   }
+}
+
+.resume-header-left {
+  text-align: left;
+}
+
+.resume-header-right {
+  text-align: right;
+  font-size: 0.95rem;
+  color: $text-medium;
+}
+
+.contact-item {
+  margin-bottom: 0.3rem;
 }
 
 .resume-section {
@@ -137,28 +153,7 @@
 /* TODO: convert 769px to a calculated value */
 @media (min-width: 769px) {
   .skills-container {
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-areas:
-      "languages frontend backend"
-      "tools frontend backend";
-  }
-  
-  .skill-category {
-    &-languages {
-      grid-area: languages;
-    }
-    
-    &-frontend {
-      grid-area: frontend;
-    }
-    
-    &-backend {
-      grid-area: backend;
-    }
-    
-    &-tools {
-      grid-area: tools;
-    }
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -176,7 +171,7 @@
   li {
     margin-bottom: 0.5rem;
     padding: 0.4rem 0.8rem;
-    background-color: $background-medium;
+    background-color: rgba(128, 176, 128, 0.15); // Match Claude Code section tint
     border-radius: 4px;
     display: inline-block;
     margin-right: 0.5rem;
@@ -241,5 +236,46 @@
     p {
       font-size: 0.9rem;
     }
+  }
+}
+
+// Print styles for PDF generation and browser print
+@media print {
+  // Hide navigation and footer
+  header.page-header,
+  nav,
+  .nav,
+  .navigation,
+  .site-header,
+  footer,
+  .footer,
+  .site-footer,
+  .page-footer {
+    display: none !important;
+  }
+
+  // Hide the download button
+  .resume-actions,
+  .resume-download-button {
+    display: none !important;
+  }
+
+  // Adjust page styling for print
+  .resume-page {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  // Ensure proper page breaks
+  .resume-section {
+    page-break-inside: avoid;
+  }
+
+  .resume-item {
+    page-break-inside: avoid;
   }
 }

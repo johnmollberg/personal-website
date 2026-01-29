@@ -23,7 +23,8 @@
     "lint": "eslint . --fix --cache",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "generate:resume-pdf": "tsx scripts/generate-resume-pdf.ts"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.817.0",
@@ -60,6 +61,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.2.0",
     "jsdom": "^26.1.0",
+    "puppeteer": "^24.36.1",
     "sass": "^1.89.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
