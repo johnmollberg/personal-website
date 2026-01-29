@@ -57,6 +57,77 @@
   margin-bottom: 0.8rem;
 }
 
+// Claude Code subsection - prominent styling within Skills section
+.claude-code-highlight {
+  margin-bottom: 2.5rem; // Spacing between Claude Code and skill categories
+
+  // Nested styles
+  background-color: rgba(128, 176, 128, 0.08); // Light green tint
+  border-left: 4px solid $primary-color;
+  border-radius: $border-radius;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 64, 0, 0.08);
+}
+
+.claude-code-title {
+  font-size: 1.3rem;
+  color: $primary-color;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.claude-code-intro {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: $text-medium;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.claude-code-capabilities {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+
+  @media (min-width: 769px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.capability-card {
+  background-color: $background-light;
+  padding: 1rem;
+  border-radius: $border-radius;
+  border: 1px solid rgba(128, 176, 128, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 64, 0, 0.12);
+  }
+
+  h4 {
+    font-size: 1.1rem;
+    color: $primary-color;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+
+    &::before {
+      content: '▸';
+      margin-right: 0.5rem;
+      font-weight: bold;
+    }
+  }
+
+  p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: $text-medium;
+    margin: 0;
+  }
+}
+
 .skills-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -136,18 +207,39 @@
   .resume-page {
     padding: 1rem;
   }
-  
+
   .skills-container {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .resume-item-meta {
     flex-direction: column;
+  }
+
+  // Claude Code responsive adjustments
+  .claude-code-highlight {
+    padding: 1rem;
+  }
+
+  .claude-code-intro {
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .skills-container {
     grid-template-columns: 1fr;
+  }
+
+  .capability-card {
+    padding: 0.8rem;
+
+    h4 {
+      font-size: 1rem;
+    }
+
+    p {
+      font-size: 0.9rem;
+    }
   }
 }

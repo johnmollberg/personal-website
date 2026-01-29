@@ -62,6 +62,48 @@ export const Page = ({ context }: PageProps) => {
         
         <section className="resume-section">
           <h2>Skills</h2>
+
+          {/* Claude Code subsection */}
+          <div className="claude-code-highlight">
+            <h3 className="claude-code-title">Claude Code</h3>
+            <p className="claude-code-intro">
+              Leveraging Claude Code as an advanced AI agent integrated directly into
+              professional software development workflows, going far beyond traditional
+              AI assistance tools.
+            </p>
+            <div className="claude-code-capabilities">
+              <div className="capability-card">
+                <h4>Production Debugging</h4>
+                <p>
+                  Training Claude to analyze production logs, trace complex issues, and
+                  propose solutions for critical system failures
+                </p>
+              </div>
+              <div className="capability-card">
+                <h4>Pull Request Authorship</h4>
+                <p>
+                  Enabling Claude to independently open pull requests with complete
+                  implementations, tests, and documentation
+                </p>
+              </div>
+              <div className="capability-card">
+                <h4>Integration Testing</h4>
+                <p>
+                  Having Claude write, execute, and maintain comprehensive integration
+                  test suites across multiple services
+                </p>
+              </div>
+              <div className="capability-card">
+                <h4>Product Planning</h4>
+                <p>
+                  Collaborating with Claude to generate detailed product plans,
+                  architectural designs, and technical roadmaps for review
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Existing skills container follows */}
           <div className="skills-container">
             <div className="skill-category skill-category-languages">
               <h3>Languages</h3>
