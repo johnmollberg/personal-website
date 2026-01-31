@@ -36,9 +36,11 @@ export const Page = ({ context }: PageProps) => {
               <li>Regularly hired, trained, and mentored engineers to grow their skills</li>
               <li>Worked closely with the executive team to set the strategy for the team</li>
               <li>Worked closely with the vice president of engineering to influence company culture toward improving individual engineering capabilities</li>
-              <li>Highly productive senior engineer in addition to managing the team</li>
+              <li>Owner of payments and subscriptions - the most technically complex domain - delivering through constant organizational change including 3 Heads of Growth in 4 years</li>
               <li>Implemented or oversaw almost all web development over my tenure, as well as significant back-end and infrastructure development</li>
-              <li>Many largescale projects over my tenure, including managing relationships with SaaS providers, building the organization's first CI/CD pipeline, moving much of the infrastructure to IaC, and more</li>
+              <li>Architected Stripe billing integration handling multiple subscriptions per user and deferred invoices. Built event-driven backend with EventBridge, SNS/SQS, and Lambda to process webhooks reliably, with CloudWatch alarms for payment failure monitoring</li>
+              <li>Delivered complex billing solution for a make-or-break product launch</li>
+              <li>Led key initiatives including CI/CD pipelines, infrastructure as code, A/B testing framework, internationalization, OAuth for third-party partnerships, and click-to-cancel compliance</li>
             </ul>
           </div>
           
@@ -152,6 +154,7 @@ export const Page = ({ context }: PageProps) => {
               <ul className="skill-list">
                 <li>Node.js</li>
                 <li>Express</li>
+                <li>Stripe</li>
                 <li>MySQL</li>
                 <li>PostgreSQL</li>
                 <li>Snowflake</li>
@@ -187,7 +190,7 @@ export const Page = ({ context }: PageProps) => {
         </section>
         
         <div className="resume-actions">
-          <a href="/resume.pdf" download="John_Mollberg_Resume.pdf" className="resume-download-button">Download PDF</a>
+          <a href="/assets/resume.pdf" download="John_Mollberg_Resume.pdf" className="resume-download-button">Download PDF</a>
         </div>
       </div>
     </PageShell>
