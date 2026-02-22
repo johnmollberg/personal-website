@@ -34,3 +34,4 @@ samconfig.toml
 *.njsproj
 *.sln
 *.sw?
+.worktrees
