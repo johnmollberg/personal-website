@@ -81,21 +81,32 @@ async function generatePDF(): Promise<void> {
     await page.addStyleTag({
       content: `
         /* Hide navigation, footer, download button */
-        header.page-header, nav, .nav, .navigation, .site-header,
-        footer, .footer, .site-footer, .page-footer,
+        .main-header, header.page-header, nav, .nav, .navigation, .site-header,
+        .main-footer, footer, .footer, .site-footer, .page-footer,
         .resume-actions, .resume-download-button {
           display: none !important;
         }
 
+        /* Remove wrapper padding/margins */
+        #root, .page-layout, main {
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
         body {
           background: white !important;
-          font-size: 11px !important;
-          line-height: 1.25 !important;
+          font-size: 12px !important;
+          line-height: 1.3 !important;
         }
 
         .resume-page {
           padding: 0 !important;
           max-width: 100% !important;
+          /* Fixed height = (11in - 0.3in - 0.3in) / 0.85 scale to match PDF page */
+          height: 12.235in !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: space-between !important;
         }
 
         .resume-header {
@@ -128,27 +139,32 @@ async function generatePDF(): Promise<void> {
         }
 
         .resume-section {
-          margin-bottom: 0.6rem !important;
+          margin-bottom: 0.4rem !important;
+        }
+
+        .resume-summary p {
+          margin: 0 !important;
+          line-height: 1.3 !important;
         }
 
         .resume-section h2 {
-          font-size: 1.15rem !important;
-          margin-bottom: 0.4rem !important;
-          padding-bottom: 0.2rem !important;
+          font-size: 1.1rem !important;
+          margin-bottom: 0.3rem !important;
+          padding-bottom: 0.15rem !important;
         }
 
         .resume-item {
-          margin-bottom: 0.5rem !important;
+          margin-bottom: 0.3rem !important;
         }
 
         .resume-item h3 {
-          font-size: 1rem !important;
-          margin-bottom: 0.1rem !important;
+          font-size: 0.95rem !important;
+          margin-bottom: 0.05rem !important;
         }
 
         .resume-item-meta {
-          font-size: 0.85rem !important;
-          margin-bottom: 0.2rem !important;
+          font-size: 0.8rem !important;
+          margin-bottom: 0.15rem !important;
         }
 
         .resume-item ul {
@@ -157,13 +173,13 @@ async function generatePDF(): Promise<void> {
         }
 
         .resume-item li {
-          margin-bottom: 0.15rem !important;
-          line-height: 1.25 !important;
+          margin-bottom: 0.1rem !important;
+          line-height: 1.2 !important;
         }
 
-        /* Claude Code section - compact */
+        /* Claude Code section */
         .claude-code-highlight {
-          padding: 0.5rem !important;
+          padding: 0.5rem 0.6rem !important;
           margin-bottom: 1.2rem !important;
         }
 
@@ -174,8 +190,8 @@ async function generatePDF(): Promise<void> {
 
         .claude-code-intro {
           font-size: 0.85rem !important;
-          margin-bottom: 0.8rem !important;
-          line-height: 1.25 !important;
+          margin-bottom: 0.5rem !important;
+          line-height: 1.3 !important;
         }
 
         .claude-code-capabilities {
@@ -184,7 +200,7 @@ async function generatePDF(): Promise<void> {
         }
 
         .capability-card {
-          padding: 0.35rem !important;
+          padding: 0.3rem 0.4rem !important;
         }
 
         .capability-card h4 {
@@ -197,7 +213,7 @@ async function generatePDF(): Promise<void> {
           line-height: 1.25 !important;
         }
 
-        /* Skills - compact grid */
+        /* Skills grid */
         .skills-container {
           gap: 0.5rem !important;
           grid-template-columns: repeat(4, 1fr) !important;
@@ -205,7 +221,7 @@ async function generatePDF(): Promise<void> {
 
         .skill-category h3 {
           font-size: 0.9rem !important;
-          margin-bottom: 0.25rem !important;
+          margin-bottom: 0.2rem !important;
         }
 
         .skill-list li {
@@ -226,13 +242,13 @@ async function generatePDF(): Promise<void> {
       path: OUTPUT_PATH,
       format: 'Letter',
       margin: {
-        top: '0.25in',
-        right: '0.25in',
-        bottom: '0.25in',
-        left: '0.25in',
+        top: '0.3in',
+        right: '0.35in',
+        bottom: '0.3in',
+        left: '0.35in',
       },
       printBackground: true,
-      scale: 0.9,
+      scale: 0.85,
     })
 
     console.log('PDF generated successfully!')
