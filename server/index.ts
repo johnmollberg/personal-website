@@ -2,7 +2,7 @@ import { renderPage } from 'vike/server'
 import type { PageContextUserAdded } from '../src/vike.d.ts'
 
 // Type definitions for Lambda Function URL event and response
-type LambdaFunctionUrlEvent = {
+interface LambdaFunctionUrlEvent {
   version: string
   routeKey: string
   rawPath: string
@@ -30,7 +30,7 @@ type LambdaFunctionUrlEvent = {
   isBase64Encoded: boolean
 }
 
-type LambdaFunctionUrlResponse = {
+interface LambdaFunctionUrlResponse {
   statusCode: number
   headers: Record<string, string>
   body: string
