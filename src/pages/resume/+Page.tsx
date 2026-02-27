@@ -46,10 +46,13 @@ export const Page = ({ context }: PageProps) => {
               <li>Architected Stripe billing integration handling multiple subscriptions per user and deferred invoices. Built event-driven backend with EventBridge, SNS/SQS, and Lambda to process webhooks reliably, with CloudWatch alarms for payment failure monitoring</li>
               <li>Led key initiatives including CI/CD pipelines, infrastructure as code, A/B testing framework, internationalization, OAuth for third-party partnerships, and click-to-cancel compliance</li>
               <li>Delivered billing system for Link Pro Trial launch, generating hundreds of thousands in revenue from thousands of trial units</li>
-              <li>Owned payments and subscriptions — the most technically complex domain — delivering through constant organizational change including 3 Heads of Growth in 4 years</li>
+              <li>Owned payments and subscriptions — the most technically complex domain — maintaining delivery velocity and domain ownership through significant organizational change</li>
               <li>Built and maintained the company's core web platforms: customer acquisition funnels, user dashboard (rounds, stats, account/billing management), and Shopify e-commerce store</li>
               <li>Led a cross-platform team of 4+ engineers; hired 2 engineers, mentored the team, and promoted 1 to senior</li>
               <li>Partnered with executives to drive product and marketing direction — selecting SaaS vendors, designing activation funnels, onboarding UX, billing models, and public API strategy</li>
+              <li>Company's core product processes tens of thousands of events per second at peak; contributed enhancements and gained deep familiarity with the high-throughput, event-driven architecture</li>
+              <li>Served as a primary technical advisor to cross-functional leadership — scoping initiative feasibility for product, finance, and operations teams</li>
+              <li>Drove engineering standards adopted across the organization: CI/CD pipelines via GitHub Actions, infrastructure as code, monitoring/alerting systems, and release processes</li>
               <li>Established engineering quality practices: incident management processes, feature request intake workflows, and team accountability mechanisms</li>
             </ul>
           </div>
@@ -63,6 +66,7 @@ export const Page = ({ context }: PageProps) => {
             <ul>
               <li>Consulted with Fortune 100 consumer electronics clients to improve software engineering practices and deliver e-commerce solutions</li>
               <li>Technical lead on a team of five engineers building customer-facing e-commerce features within a large-scale agile organization</li>
+              <li>Built Kafka-based data pipeline consuming CDC events from cross-organization databases, transforming them through stream processors, and materializing into application-specific data stores</li>
               <li>Introduced continuous integration, automated testing, and code quality standards to teams that previously lacked them</li>
             </ul>
           </div>
@@ -155,6 +159,8 @@ export const Page = ({ context }: PageProps) => {
               <ul className="skill-list">
                 <li>Node.js</li>
                 <li>Express</li>
+                <li>Java</li>
+                <li>Rust</li>
                 <li>Stripe</li>
                 <li>MySQL</li>
                 <li>PostgreSQL</li>
